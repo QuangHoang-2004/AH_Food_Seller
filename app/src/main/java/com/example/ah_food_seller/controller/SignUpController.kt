@@ -24,7 +24,6 @@ fun signUp(
                 )
 
                 val firestore = FirebaseFirestore.getInstance()
-                firestore.collection("shops")
                 firestore.collection("restaurants")
                     .document(user!!.uid)
                     .set(userProfile)

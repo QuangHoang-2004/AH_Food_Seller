@@ -18,6 +18,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,8 +33,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.ah_food_seller.R
+import com.example.ah_food_seller.controller.CategoryViewModel
+import com.example.ah_food_seller.controller.addProduct
 import com.example.ah_food_seller.model.Product
 import com.example.ah_food_seller.ui.theme.Poppins
 import com.example.ah_food_seller.ui.theme.PrimaryColor
@@ -45,23 +49,14 @@ fun AddProductScreen(
     mainNavController: NavHostController
 ) {
     var nameProduct by remember { mutableStateOf("") }
-    var contentCategory by remember { mutableStateOf("") }
-    var moneyCategory by remember { mutableStateOf("") }
-    var items = listOf("Item 1", "Item 2", "Item 3")
-    var id_Category = remember { mutableStateOf("Chọn danh mục") }
-    var product by remember { mutableStateOf(
-        Product(
-            idProduct = 0,
-            nameProduct = "oke",
-            contentProduct = "",
-            moneyProduct = "",
-            imgProduct = "",
-            statusProduct = false,
-            id_Category = "",
-            id_Restaurant = ""
-        )
-    ) }
-//    var product: Product
+    var contentProduct by remember { mutableStateOf("") }
+    var moneyProduct by remember { mutableStateOf("") }
+    var imgProduct by remember { mutableStateOf("") }
+    var statusProduct:Boolean = false
+    var id_Category = remember { mutableStateOf("") }
+
+    var name_Category = remember { mutableStateOf("Chọn danh mục") }
+
     Column(
         modifier = Modifier
     ) {
@@ -87,8 +82,8 @@ fun AddProductScreen(
         AddProductItem(
             mainText = stringResource(id = R.string.contact),
             nameText = "Miêu tả",
-            value = contentCategory,
-            onValueChange = { contentCategory = it },
+            value = contentProduct,
+            onValueChange = { contentProduct = it },
             lable = "Nhập miêu tả.",
             modifier = Modifier
                 .padding(bottom = 10.dp)
@@ -98,8 +93,8 @@ fun AddProductScreen(
         AddProductItem(
             mainText = stringResource(id = R.string.contact),
             nameText = "Giá",
-            value = moneyCategory,
-            onValueChange = { moneyCategory = it },
+            value = moneyProduct,
+            onValueChange = { moneyProduct = it },
             lable = "Nhập giá tiền.",
             modifier = Modifier
                 .padding(bottom = 10.dp)
@@ -109,29 +104,27 @@ fun AddProductScreen(
             modifier = Modifier
             .padding(10.dp)
             .fillMaxWidth(),
-            items = items,
-            selectedItem = id_Category,
-            onItemSelected = { newItem -> id_Category.value = newItem }
+            id_Category = id_Category,
+            selectedItem = name_Category,
+            onItemSelected = { newItem -> name_Category.value = newItem }
         )
 
         Button(
             onClick = {
-                product = Product(
-                    idProduct = 1,
+                addProduct(
                     nameProduct = nameProduct,
-                    contentProduct = contentCategory,
-                    moneyProduct = moneyCategory,
-                    imgProduct = "image_url",
-                    statusProduct = true,
-                    id_Category = id_Category.value,
-                    id_Restaurant = "restaurant_456"
+                    contentProduct = contentProduct,
+                    moneyProduct = moneyProduct,
+                    imgProduct = imgProduct,
+                    statusProduct = statusProduct,
+                    id_Category = id_Category.value
                 )
                       },
             modifier = Modifier
                 .padding(top = 20.dp, start = 50.dp, end = 50.dp)
                 .fillMaxWidth()
         ) {
-            Text(text = "Xác Nhận ${id_Category.value} ${product.id_Category}", color = Color.White)
+            Text(text = "Xác Nhận", color = Color.White)
         }
     }
 }
@@ -229,10 +222,13 @@ fun AddProductItem(
 @Composable
 fun SelectComponent(
     modifier: Modifier = Modifier,
-    items: List<String>,
+    id_Category: MutableState<String>,
     selectedItem: MutableState<String>,
     onItemSelected: (String) -> Unit
 ) {
+    val viewModel: CategoryViewModel = viewModel()
+    val categories = viewModel.categories.collectAsState().value
+
     var expanded by remember { mutableStateOf(false) }
 
     Column (
@@ -271,11 +267,12 @@ fun SelectComponent(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
-                items.forEach { item ->
+                categories.forEach { category  ->
                     DropdownMenuItem(
-                        text = { androidx.compose.material3.Text(text = item) },
+                        text = { androidx.compose.material3.Text(text = category.nameCategory ) },
                         onClick = {
-                            onItemSelected(item)
+                            onItemSelected(category.nameCategory)
+                            id_Category.value = category.idCategory
                             expanded = false
                         }
                     )

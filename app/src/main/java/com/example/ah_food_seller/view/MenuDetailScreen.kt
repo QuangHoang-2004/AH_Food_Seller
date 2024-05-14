@@ -10,11 +10,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,8 +29,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.ah_food_seller.R
+import com.example.ah_food_seller.controller.CategoryViewModel
 import com.example.ah_food_seller.ui.theme.Poppins
 import com.example.ah_food_seller.ui.theme.PrimaryColor
 import com.example.ah_food_seller.ui.theme.Purple500
@@ -92,19 +97,25 @@ fun MenuDetailScreen(mainNavController: NavHostController) {
                 }
             }
         }
+        CategoryListScreen()
+    }
+}
 
-        MenuDetailItem(
-            mainText = stringResource(id = R.string.contact),
-            statusText = 5,
-            nameText = "Cà Phê",
-            onClick = {}
-        )
-        MenuDetailItem(
-            mainText = stringResource(id = R.string.contact),
-            statusText = 8,
-            nameText = "Nước ép",
-            onClick = {}
-        )
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+private fun CategoryListScreen() {
+    val viewModel: CategoryViewModel = viewModel()
+    val categories = viewModel.categories.collectAsState().value
+
+    LazyColumn(modifier = Modifier.padding(16.dp)) {
+        items(categories) { category ->
+            MenuDetailItem(
+                mainText = stringResource(id = R.string.contact),
+                statusText = 5, // Adjust as per your logic
+                nameText = category.nameCategory,
+                onClick = {}
+            )
+        }
     }
 }
 
@@ -160,7 +171,7 @@ fun MenuDetailTop(mainText: String, onClick: () -> Unit) {
 
 @ExperimentalMaterialApi
 @Composable
-fun MenuDetailItem(mainText: String, statusText: Int, nameText: String, onClick: () -> Unit) {
+private fun MenuDetailItem(mainText: String, statusText: Int, nameText: String, onClick: () -> Unit) {
     Card(
         onClick = { onClick() },
         backgroundColor = Color.White,

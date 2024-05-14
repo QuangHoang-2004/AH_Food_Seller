@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.ah_food_seller.R
+import com.example.ah_food_seller.controller.addCategory
 import com.example.ah_food_seller.ui.theme.Poppins
 import com.example.ah_food_seller.ui.theme.PrimaryColor
 import com.example.ah_food_seller.ui.theme.Purple500
@@ -46,7 +47,7 @@ import com.example.ah_food_seller.ui.theme.SecondaryColor
 fun AddCategoryScreen(
     mainNavController: NavHostController
 ) {
-    var pass by remember {
+    var nameCategory by remember {
         mutableStateOf("")
     }
     Column(
@@ -63,8 +64,8 @@ fun AddCategoryScreen(
         AddCategoryItem(
             mainText = stringResource(id = R.string.contact),
             nameText = "Tên",
-            value = pass,
-            onValueChange = { pass = it },
+            value = nameCategory,
+            onValueChange = { nameCategory = it },
             lable = "Nhập tên danh mục.",
             modifier = Modifier
                 .padding(bottom = 10.dp)
@@ -72,7 +73,11 @@ fun AddCategoryScreen(
         )
 
         Button(
-            onClick = { /*TODO*/ },
+            onClick = {
+                addCategory(
+                    nameCategory = nameCategory
+                )
+                      },
             modifier = Modifier
                 .padding(top = 20.dp, start = 50.dp, end = 50.dp)
                 .fillMaxWidth()
