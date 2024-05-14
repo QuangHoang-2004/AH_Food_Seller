@@ -3,6 +3,7 @@ package com.example.ah_food_seller.controller
 import android.util.Log
 import com.example.ah_food_seller.model.Product
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 private val auth = FirebaseAuth.getInstance()
 private val currentUser = auth.currentUser
@@ -64,5 +65,25 @@ fun updateProductStatus(productId: String, newStatus: Boolean) {
             }
     } else {
         Log.w("updateProductStatus", "No current user logged in")
+    }
+}
+
+fun deleteProduct(productId: String) {
+    if (currentUser != null) {
+        // Lấy instance của Firestore
+        val firestore = FirebaseFirestore.getInstance()
+
+        // Xóa tài liệu Product từ Firestore
+        firestore.collection("products")
+            .document(productId)
+            .delete()
+            .addOnSuccessListener {
+                Log.d("deleteProduct", "DocumentSnapshot successfully deleted!")
+            }
+            .addOnFailureListener { e ->
+                Log.w("deleteProduct", "Error deleting document", e)
+            }
+    } else {
+        Log.w("deleteProduct", "No current user logged in")
     }
 }

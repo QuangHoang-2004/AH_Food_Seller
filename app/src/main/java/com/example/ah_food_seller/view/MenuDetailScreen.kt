@@ -44,7 +44,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.ah_food_seller.R
 import com.example.ah_food_seller.controller.CategoryViewModel
+import com.example.ah_food_seller.controller.Product
 import com.example.ah_food_seller.controller.ProductViewModel
+import com.example.ah_food_seller.controller.deleteCategory
+import com.example.ah_food_seller.controller.deleteProduct
 import com.example.ah_food_seller.controller.updateProductStatus
 import com.example.ah_food_seller.ui.theme.BackgroundColor
 import com.example.ah_food_seller.ui.theme.Poppins
@@ -111,19 +114,20 @@ fun MenuDetailScreen(mainNavController: NavHostController) {
                 }
             }
         }
-        CategoryListScreen()
+        CategoryListScreen(mainNavController = mainNavController)
     }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun CategoryListScreen() {
+private fun CategoryListScreen(mainNavController: NavHostController) {
     val viewModel: CategoryViewModel = viewModel()
     val categories = viewModel.categories.collectAsState().value
 
     LazyColumn(modifier = Modifier) {
         items(categories) { category ->
             MenuDetailItem(
+                mainNavControllerM = mainNavController,
                 statusText = 5, // Adjust as per your logic
                 nameText = category.nameCategory,
                 id_Category = category.idCategory
@@ -184,7 +188,7 @@ fun MenuDetailTop(mainText: String, onClick: () -> Unit) {
 
 @ExperimentalMaterialApi
 @Composable
-private fun MenuDetailItem(statusText: Int, nameText: String, id_Category: String) {
+private fun MenuDetailItem(mainNavControllerM: NavHostController,statusText: Int, nameText: String, id_Category: String) {
     val mainNavController = rememberNavController()
     var boolean: Boolean = true
     Card(
@@ -214,7 +218,8 @@ private fun MenuDetailItem(statusText: Int, nameText: String, id_Category: Strin
                 Row {
                     TextButton(
                         onClick = {
-                                  
+                            deleteCategory(categoryId = id_Category)
+                            mainNavControllerM.navigate("detailMenu")
                         },
                         modifier = Modifier.padding(end = 15.dp)
                     ) {
@@ -262,7 +267,7 @@ private fun MenuDetailItem(statusText: Int, nameText: String, id_Category: Strin
                 composable("main"){
                 }
                 composable("listProduct"){
-                    ProductListScreen(id_Category = id_Category)
+                    ProductListScreen(id_Category = id_Category, mainNavController = mainNavController)
                 }
             }
         }
@@ -270,19 +275,19 @@ private fun MenuDetailItem(statusText: Int, nameText: String, id_Category: Strin
 }
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun ProductListScreen(id_Category: String) {
+private fun ProductListScreen(id_Category: String, mainNavController: NavHostController) {
     val viewModel: ProductViewModel = viewModel()
     val products by viewModel.products.collectAsState()
 
     Column(modifier = Modifier.padding(horizontal = 15.dp)) {
         products.forEach() { product ->
             if (product.id_Category == id_Category) {
-                val checkedState = remember { mutableStateOf(product.statusProduct) }
-                updateProductStatus(productId = product.idProduct, checkedState.value)
                 MainMenuItemProduct(
-                    checkedState = checkedState,
+                    idProduct = product.idProduct,
                     nameProduct = product.nameProduct,
-                    idCategory = product.id_Category
+                    moneyProduct = product.moneyProduct,
+                    idCategory = product.id_Category,
+                    mainNavController = mainNavController
                 )
             }
         }
@@ -291,7 +296,7 @@ private fun ProductListScreen(id_Category: String) {
 
 @ExperimentalMaterialApi
 @Composable
-private fun MainMenuItemProduct(checkedState: MutableState<Boolean>, nameProduct: String, idCategory: String) {
+private fun MainMenuItemProduct(nameProduct: String, moneyProduct: String,idCategory: String, idProduct: String, mainNavController: NavHostController) {
     Card(
         backgroundColor = BackgroundColor,
         modifier = Modifier
@@ -304,27 +309,37 @@ private fun MainMenuItemProduct(checkedState: MutableState<Boolean>, nameProduct
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            androidx.compose.material.Text(
-                text = nameProduct,
-                fontFamily = Poppins,
-                color = SecondaryColor,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-            )
-            Switch(
-                checked = checkedState.value,
-                onCheckedChange = { checkedState.value = it },
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.White,
-                    checkedTrackColor = Color.Green.copy(alpha = 0.5f),
-                    uncheckedThumbColor = Color.Gray,
-                    uncheckedTrackColor = Color.LightGray.copy(alpha = 0.5f)
-                ),
-                modifier = Modifier
-                    .padding(5.dp)
-                    .padding(end = 20.dp)
-                    .size(10.dp) // Adjust the size as needed
-            )
+            Column {
+                androidx.compose.material.Text(
+                    text = nameProduct,
+                    fontFamily = Poppins,
+                    color = SecondaryColor,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+                androidx.compose.material.Text(
+                    text = moneyProduct,
+                    fontFamily = Poppins,
+                    color = SecondaryColor,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            TextButton(
+                onClick = {
+                    deleteProduct(productId = idProduct)
+                    mainNavController.navigate("listProduct")
+                },
+                modifier = Modifier.padding(end = 15.dp)
+            ) {
+                androidx.compose.material.Text(
+                    text = "Xóa",
+                    fontFamily = Poppins,
+                    color = Purple500,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
         }
     }
 }

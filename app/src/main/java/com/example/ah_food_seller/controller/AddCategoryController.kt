@@ -34,3 +34,23 @@ fun addCategory(
         Log.w("addCategory", "No current user logged in")
     }
 }
+
+fun deleteCategory(categoryId: String) {
+    if (currentUser != null) {
+        // Lấy instance của Firestore
+        val firestore = FirebaseFirestore.getInstance()
+
+        // Xóa tài liệu Category từ Firestore
+        firestore.collection("categories")
+            .document(categoryId)
+            .delete()
+            .addOnSuccessListener {
+                Log.d("deleteCategory", "DocumentSnapshot successfully deleted!")
+            }
+            .addOnFailureListener { e ->
+                Log.w("deleteCategory", "Error deleting document", e)
+            }
+    } else {
+        Log.w("deleteCategory", "No current user logged in")
+    }
+}
