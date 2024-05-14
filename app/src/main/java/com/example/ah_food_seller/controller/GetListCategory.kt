@@ -2,10 +2,14 @@ package com.example.ah_food_seller.controller
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+
+private val auth = FirebaseAuth.getInstance()
+private val currentUser = auth.currentUser
 
 data class Category(
     val nameCategory: String = "",
@@ -23,19 +27,23 @@ class CategoryViewModel : ViewModel() {
     }
 
     private fun fetchCategories() {
-        viewModelScope.launch {
-            firestore.collection("categories")
-                .get()
-                .addOnSuccessListener { documents ->
-                    val categoryList = documents.map { document ->
-                        val category = document.toObject(Category::class.java)
-                        category.copy(idCategory = document.id)
+        if (currentUser != null) {
+            val restaurantId = currentUser.uid
+            viewModelScope.launch {
+                firestore.collection("categories")
+                    .whereEqualTo("id_Restaurant", restaurantId)
+                    .get()
+                    .addOnSuccessListener { documents ->
+                        val categoryList = documents.map { document ->
+                            val category = document.toObject(Category::class.java)
+                            category.copy(idCategory = document.id)
+                        }
+                        _categories.value = categoryList
                     }
-                    _categories.value = categoryList
-                }
-                .addOnFailureListener { exception ->
-                    // Handle the error
-                }
+                    .addOnFailureListener { exception ->
+                        // Handle the error
+                    }
+            }
         }
     }
 }
