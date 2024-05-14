@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExposedDropdownMenuBox
@@ -30,6 +31,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,7 +62,8 @@ fun AddProductScreen(
     Column(
         modifier = Modifier
     ) {
-
+        var keyboardOptionsNumber = KeyboardOptions(keyboardType = KeyboardType.Number)
+        var keyboardOptions = KeyboardOptions()
         AddProductTop(
             mainText = stringResource(id = R.string.contact),
             onClick = {
@@ -74,6 +77,7 @@ fun AddProductScreen(
             value = nameProduct,
             onValueChange = { nameProduct = it },
             lable = "Nhập tên món.",
+            keyboardOptions = keyboardOptions,
             modifier = Modifier
                 .padding(bottom = 10.dp)
                 .fillMaxWidth()
@@ -85,6 +89,7 @@ fun AddProductScreen(
             value = contentProduct,
             onValueChange = { contentProduct = it },
             lable = "Nhập miêu tả.",
+            keyboardOptions = keyboardOptions,
             modifier = Modifier
                 .padding(bottom = 10.dp)
                 .fillMaxWidth()
@@ -96,6 +101,7 @@ fun AddProductScreen(
             value = moneyProduct,
             onValueChange = { moneyProduct = it },
             lable = "Nhập giá tiền.",
+            keyboardOptions = keyboardOptionsNumber,
             modifier = Modifier
                 .padding(bottom = 10.dp)
                 .fillMaxWidth()
@@ -183,6 +189,7 @@ fun AddProductTop(mainText: String, onClick: () -> Unit) {
 @ExperimentalMaterialApi
 @Composable
 fun AddProductItem(
+    keyboardOptions: KeyboardOptions,
     mainText: String,
     nameText: String,
     lable: String,
@@ -212,7 +219,7 @@ fun AddProductItem(
                 value = value,
                 onValueChange = onValueChange,
                 label = { Text(lable) },
-//            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                keyboardOptions = keyboardOptions,
                 modifier = Modifier.fillMaxWidth()
             )
         }
