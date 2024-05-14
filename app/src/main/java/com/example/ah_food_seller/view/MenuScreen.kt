@@ -352,7 +352,7 @@ fun MainMenuTop(mainText: String, onClick: () -> Unit) {
 
 @ExperimentalMaterialApi
 @Composable
-fun MainMenuItem(statusText: Int, nameText: String, id_Category: String) {
+private fun MainMenuItem(statusText: Int, nameText: String, id_Category: String) {
     val mainNavController = rememberNavController()
     var boolean: Boolean = true
     Card(
@@ -429,7 +429,7 @@ private fun ProductListScreen(id_Category: String) {
 
 @ExperimentalMaterialApi
 @Composable
-fun MainMenuItemProduct(checkedState: MutableState<Boolean>, nameProduct: String, idCategory: String) {
+private fun MainMenuItemProduct(checkedState: MutableState<Boolean>, nameProduct: String, idCategory: String) {
     Card(
         backgroundColor = BackgroundColor,
         modifier = Modifier
