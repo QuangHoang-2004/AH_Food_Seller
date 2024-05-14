@@ -23,7 +23,11 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,6 +43,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.ah_food_seller.model.Restaurant
 import com.example.ah_food_seller.ui.theme.AH_Food_SellerTheme
 import com.example.ah_food_seller.ui.theme.LightPrimaryColor
 import com.example.ah_food_seller.ui.theme.Poppins
@@ -53,35 +58,47 @@ import com.example.ah_food_seller.view.OrderDetailScreen
 import com.example.ah_food_seller.view.OrderScreen
 import com.example.ah_food_seller.view.OrderScreenMain
 import com.example.ah_food_seller.view.SettingsScreen
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
 
-enum class AppScreen(@StringRes val title: Int) {
-    Start(title = R.string.app_name),
-    Order(title = R.string.order_screen),
-    Menu(title = R.string.menu_screen),
-    Wallet(title = R.string.wallet_screen),
-    MailBox(title = R.string.mailbox_screen),
-    Feedback(title = R.string.feedback_screen),
-    Profile(title = R.string.profile_screen),
-}
+private val auth: FirebaseAuth by lazy { Firebase.auth }
+
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun OrderFoodApp(
 //    viewModel: OrderViewModel = viewModel(),
-//    user: FirebaseUser,
+    resUser: FirebaseUser,
     navController: NavHostController = rememberNavController()
 ){
+    var users by remember { mutableStateOf(auth.currentUser) }
+    val userProfile = remember { mutableStateOf<Restaurant?>(null) }
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen = AppScreen.valueOf(
-        backStackEntry?.destination?.route ?: AppScreen.Start.name
-    )
+    LaunchedEffect(resUser.uid) {
+        val firestore = FirebaseFirestore.getInstance()
+        val userDocRef = firestore.collection("restaurants").document(resUser.uid)
 
+        userDocRef.get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val nameRes = document.getString("nameRestaurant")
+                    val addressRes = document.getString("addressRestaurant")
+                    val email = document.getString("email")
+                    userProfile.value = Restaurant(nameRes, addressRes, resUser.email ?: "")
+                } else {
+                }
+            }
+            .addOnFailureListener { e ->
+            }
+    }
     Scaffold (
         bottomBar = { MyBottomAppBar(navController) },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-
+                        navController.navigate("")
                           },
                 contentColor = Color.White,
                 modifier = Modifier
@@ -108,7 +125,9 @@ fun OrderFoodApp(
 //                MainContent(
 //                    user = user!!
 //                )
-                OrderScreenMain()
+                OrderScreenMain(
+                    user = resUser!!
+                )
             }
             composable(route = "Menu") { // Chỉ định route cho ScreenB
                 MenuScreenMain()
@@ -117,7 +136,10 @@ fun OrderFoodApp(
                 MailBoxScreen()
             }
             composable(route = "Profile") { // Chỉ định route cho ScreenB
-                SettingsScreen()
+                userProfile.value?.let { users ->
+                    SettingsScreen(users)
+                }
+
             }
         }
     }

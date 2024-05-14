@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +57,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.ah_food_seller.R
+import com.example.ah_food_seller.model.Restaurant
 import com.example.ah_food_seller.ui.theme.AH_Food_SellerTheme
 import com.example.ah_food_seller.ui.theme.LightPrimaryColor
 import com.example.ah_food_seller.ui.theme.LightTextColor
@@ -63,11 +65,33 @@ import com.example.ah_food_seller.ui.theme.Poppins
 import com.example.ah_food_seller.ui.theme.PrimaryColor
 import com.example.ah_food_seller.ui.theme.Purple700
 import com.example.ah_food_seller.ui.theme.SecondaryColor
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun OrderScreenMain(){
+fun OrderScreenMain(
+    user: FirebaseUser
+){
+    val userProfile = remember { mutableStateOf<Restaurant?>(null) }
+    LaunchedEffect(user.uid) {
+        val firestore = FirebaseFirestore.getInstance()
+        val userDocRef = firestore.collection("users").document(user.uid)
+
+        userDocRef.get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val nameRes = document.getString("nameRestaurant")
+                    val addressRes = document.getString("addressRestaurant")
+                    val email = document.getString("email")
+                    userProfile.value = Restaurant(nameRes, addressRes, user.email ?: "")
+                } else {
+                }
+            }
+            .addOnFailureListener { e ->
+            }
+    }
     val mainNavController = rememberNavController()
 
     NavHost(navController = mainNavController, startDestination = "main"){
@@ -601,5 +625,5 @@ fun OrderHistoryBottomItem(icon: Int, mainText: String, dateText: String, onClic
 @Preview(showBackground = true)
 @Composable
 fun PreviewOder() {
-    OrderScreenMain()
+
 }
