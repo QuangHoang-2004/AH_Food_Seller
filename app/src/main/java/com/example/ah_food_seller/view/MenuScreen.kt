@@ -32,7 +32,11 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,6 +53,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.ah_food_seller.R
 import com.example.ah_food_seller.controller.CategoryViewModel
+import com.example.ah_food_seller.controller.ProductViewModel
 import com.example.ah_food_seller.ui.theme.LightPrimaryColor
 import com.example.ah_food_seller.ui.theme.LightTextColor
 import com.example.ah_food_seller.ui.theme.Poppins
@@ -247,10 +252,8 @@ private fun CategoryListScreen() {
     LazyColumn(modifier = Modifier.padding(16.dp)) {
         items(categories) { category ->
             MainMenuItem(
-                mainText = stringResource(id = R.string.contact),
                 statusText = 5, // Adjust as per your logic
                 nameText = category.nameCategory,
-                onClick = {}
             )
         }
     }
@@ -342,9 +345,8 @@ fun MainMenuTop(mainText: String, onClick: () -> Unit) {
 
 @ExperimentalMaterialApi
 @Composable
-fun MainMenuItem(mainText: String, statusText: Int, nameText: String, onClick: () -> Unit) {
+fun MainMenuItem(statusText: Int, nameText: String) {
     Card(
-        onClick = { onClick() },
         backgroundColor = Color.White,
         modifier = Modifier
             .padding(bottom = 5.dp)
@@ -380,6 +382,55 @@ fun MainMenuItem(mainText: String, statusText: Int, nameText: String, onClick: (
                     modifier = Modifier.size(20.dp)
                 )
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+private fun ProductListScreen() {
+    val viewModel: ProductViewModel = viewModel()
+    val products by viewModel.products.collectAsState()
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        products.forEach() { product ->
+            val checkedState = remember { mutableStateOf(false) }
+            MainMenuItemProduct(
+                checkedState = checkedState,
+                nameProduct = product.nameProduct,
+                idCategory = product.id_Category
+            )
+        }
+    }
+}
+
+@ExperimentalMaterialApi
+@Composable
+fun MainMenuItemProduct(checkedState: MutableState<Boolean>, nameProduct: String, idCategory: String) {
+    Card(
+        backgroundColor = Color.White,
+        modifier = Modifier
+            .padding(bottom = 5.dp)
+            .fillMaxWidth(),
+        elevation = 0.dp,
+    ) {
+        Row(
+            modifier = Modifier.padding(vertical = 14.dp, horizontal = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            androidx.compose.material.Text(
+                text = nameProduct,
+                fontFamily = Poppins,
+                color = SecondaryColor,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+            )
+            androidx.compose.material.Icon(
+                painter = painterResource(id = R.drawable.ic_arrow_down),
+                contentDescription = "",
+                modifier = Modifier.size(20.dp)
+            )
         }
     }
 }
