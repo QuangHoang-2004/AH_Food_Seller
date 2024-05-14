@@ -39,14 +39,6 @@ fun AuthOrMainScreen(auth: FirebaseAuth) {
             }
         )
     } else {
-        OrderFoodApp()
-//            MainScreen(
-//                user = user!!,  // Pass the user information to MainScreen
-//                onSignOut = {
-//                    auth.signOut()
-//                    user = null
-//                }
-//            )
-
+        OrderFoodApp(user!!)
     }
 }

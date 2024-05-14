@@ -64,9 +64,9 @@ fun AuthScreen(
     val auth: FirebaseAuth by lazy { Firebase.auth }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var nameShop by remember { mutableStateOf("") }
-    var addressShop by remember { mutableStateOf("") }
-//    var isLoading by remember { mutableStateOf(false) }
+    var nameRestaurant by remember { mutableStateOf("") }
+    var addressRestaurant by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
     var isSignIn by remember { mutableStateOf(true) }
     var isPasswordVisible by remember { mutableStateOf(false) }
     // State variables for error message
@@ -116,11 +116,11 @@ fun AuthScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedTextField(
-                    value = nameShop,
+                    value = nameRestaurant,
                     onValueChange = {
-                        nameShop = it
+                        nameRestaurant = it
                     },
-                    label = { Text(text = "Tên shop") },
+                    label = { Text(text = "Tên nhà hàng") },
                     leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
@@ -133,11 +133,11 @@ fun AuthScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedTextField(
-                    value = addressShop,
+                    value = addressRestaurant,
                     onValueChange = {
-                        addressShop = it
+                        addressRestaurant = it
                     },
-                    label = { Text(text = "Địa chỉ shop ") },
+                    label = { Text(text = "Địa chỉ nhà hàng ") },
                     leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
@@ -227,8 +227,8 @@ fun AuthScreen(
                                 auth,
                                 email,
                                 password,
-                                nameShop,
-                                addressShop
+                                nameRestaurant,
+                                addressRestaurant
                             ) { signedInUser ->
 //                                onSignedIn(signedInUser)
                             }

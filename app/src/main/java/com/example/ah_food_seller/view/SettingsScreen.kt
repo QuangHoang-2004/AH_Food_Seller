@@ -23,9 +23,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,45 +35,45 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.ah_food_seller.ui.theme.LightPrimaryColor
 import com.example.ah_food_seller.ui.theme.Poppins
 import com.example.ah_food_seller.ui.theme.PrimaryColor
 import com.example.ah_food_seller.ui.theme.SecondaryColor
 import com.example.ah_food_seller.ui.theme.Shapes
 import com.example.ah_food_seller.R
+import com.example.ah_food_seller.model.Restaurant
 import com.example.ah_food_seller.ui.theme.AH_Food_SellerTheme
 import com.example.ah_food_seller.ui.theme.PlaceholderColor
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
+import kotlinx.coroutines.launch
 
 @ExperimentalMaterialApi
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(
+   // navController: NavHostController = rememberNavController(),
+    resUser: Restaurant
+) {
+    val restaurant by remember { mutableStateOf(resUser) }
+    val name = restaurant.nameRestaurant
+    val address = restaurant.addressRestaurant
+
     Box(Modifier.verticalScroll(rememberScrollState())) {
         Column() {
 //            HeaderText()
-            ProfileCardUI()
+            ProfileCardUI(name.toString(),address.toString())
             GeneralOptionsUI()
             SupportOptionsUI()
         }
     }
 }
 
-@Composable
-fun HeaderText() {
-    androidx.compose.material.Text(
-        text = "Cài đặt",
-        fontFamily = Poppins,
-        color = SecondaryColor,
-        textAlign = TextAlign.Center,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 30.dp, bottom = 10.dp),
-        fontWeight = FontWeight.ExtraBold,
-        fontSize = 16.sp
-    )
-}
 
 @Composable
-fun ProfileCardUI() {
+fun ProfileCardUI(name : String, address: String) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -96,7 +94,7 @@ fun ProfileCardUI() {
             ) {
                 Column() {
                     androidx.compose.material.Text(
-                        text = "Tên Quán",
+                        text = name,
                         fontFamily = Poppins,
                         color = SecondaryColor,
                         fontSize = 16.sp,
@@ -104,7 +102,7 @@ fun ProfileCardUI() {
                     )
 
                     androidx.compose.material.Text(
-                        text = "Địa chỉ quán",
+                        text = address,
                         fontFamily = Poppins,
                         color = Color.Gray,
                         fontSize = 10.sp,
@@ -289,6 +287,9 @@ fun GeneralSettingItem(icon: Int, mainText: String, onClick: () -> Unit) {
 @ExperimentalMaterialApi
 @Composable
 fun SupportOptionsUI() {
+    val auth: FirebaseAuth by lazy { Firebase.auth }
+    var user by remember { mutableStateOf(auth.currentUser) }
+    val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .padding(horizontal = 14.dp)
@@ -321,7 +322,13 @@ fun SupportOptionsUI() {
         SupportItem(
             icon = R.drawable.logout_icon,
             mainText = stringResource(id = R.string.logout),
-            onClick = {}
+            onClick = {
+                coroutineScope.launch {
+                    auth.signOut()
+                    user = null
+//                    navController.navigate("Logout")
+                }
+            }
         )
     }
 }
@@ -387,7 +394,7 @@ fun SupportItem(icon: Int, mainText: String, onClick: () -> Unit) {
 @Composable
 @Preview("Preview", showBackground = true)
 fun A(){
-    AH_Food_SellerTheme {
-        SettingsScreen()
-    }
+//    AH_Food_SellerTheme {
+//        SettingsScreen()
+//    }
 }
