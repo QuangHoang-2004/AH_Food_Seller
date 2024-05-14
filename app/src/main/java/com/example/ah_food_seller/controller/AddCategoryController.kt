@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.ah_food_seller.model.Category
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
 private val auth = FirebaseAuth.getInstance()
 private val currentUser = auth.currentUser
@@ -74,5 +75,22 @@ fun deleteCategory(categoryId: String) {
             }
             .addOnFailureListener { e ->
             }
+    }
+}
+
+suspend fun getProductCountForCategory(categoryId: String): Int {
+    val firestore = FirebaseFirestore.getInstance()
+
+    try {
+        val querySnapshot = firestore.collection("products")
+            .whereEqualTo("id_Category", categoryId)
+            .get()
+            .await()
+
+        return querySnapshot.size()
+    } catch (e: Exception) {
+        // Xử lý ngoại lệ nếu có
+        e.printStackTrace()
+        return 0
     }
 }

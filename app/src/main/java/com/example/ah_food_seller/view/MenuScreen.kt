@@ -58,6 +58,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.ah_food_seller.R
 import com.example.ah_food_seller.controller.CategoryViewModel
 import com.example.ah_food_seller.controller.ProductViewModel
+import com.example.ah_food_seller.controller.getProductCountForCategory
 import com.example.ah_food_seller.controller.updateProductStatus
 import com.example.ah_food_seller.ui.theme.BackgroundColor
 import com.example.ah_food_seller.ui.theme.LightPrimaryColor
@@ -257,8 +258,9 @@ private fun CategoryListScreen() {
 
     LazyColumn(modifier = Modifier) {
         items(categories) { category ->
+//            val productCount = getProductCountForCategory(category.idCategory)
             MainMenuItem(
-                statusText = 5, // Adjust as per your logic
+                countText = 5, // Adjust as per your logic
                 nameText = category.nameCategory,
                 id_Category = category.idCategory
             )
@@ -352,7 +354,7 @@ fun MainMenuTop(mainText: String, onClick: () -> Unit) {
 
 @ExperimentalMaterialApi
 @Composable
-private fun MainMenuItem(statusText: Int, nameText: String, id_Category: String) {
+private fun MainMenuItem(countText: Int, nameText: String, id_Category: String) {
     val mainNavController = rememberNavController()
     var boolean: Boolean = true
     Card(
@@ -366,7 +368,9 @@ private fun MainMenuItem(statusText: Int, nameText: String, id_Category: String)
             modifier = Modifier.fillMaxWidth()
         ){
             Row(
-                modifier = Modifier.padding(horizontal = 14.dp).fillMaxWidth(),
+                modifier = Modifier
+                    .padding(horizontal = 14.dp)
+                    .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -377,6 +381,16 @@ private fun MainMenuItem(statusText: Int, nameText: String, id_Category: String)
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                 )
+            Row (
+                verticalAlignment = Alignment.CenterVertically
+            ){
+//                androidx.compose.material.Text(
+//                    text = "$countText món",
+//                    fontFamily = Poppins,
+//                    color = SecondaryColor,
+//                    fontSize = 16.sp,
+//                    fontWeight = FontWeight.Bold,
+//                )
 
                 IconButton(onClick = {
                     if (boolean){
@@ -394,6 +408,7 @@ private fun MainMenuItem(statusText: Int, nameText: String, id_Category: String)
                         tint = Color.Unspecified // Use Color.Unspecified to keep the original color of the icon
                     )
                 }
+            }
             }
             NavHost(navController = mainNavController, startDestination = "main"){
                 composable("main"){
