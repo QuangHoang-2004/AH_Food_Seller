@@ -389,12 +389,3 @@ fun SupportItem(icon: Int, mainText: String, onClick: () -> Unit) {
         }
     }
 }
-
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-@Preview("Preview", showBackground = true)
-fun A(){
-//    AH_Food_SellerTheme {
-//        SettingsScreen()
-//    }
-}

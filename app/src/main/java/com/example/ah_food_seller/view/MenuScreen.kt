@@ -24,7 +24,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
@@ -54,6 +58,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.ah_food_seller.R
 import com.example.ah_food_seller.controller.CategoryViewModel
 import com.example.ah_food_seller.controller.ProductViewModel
+import com.example.ah_food_seller.ui.theme.BackgroundColor
 import com.example.ah_food_seller.ui.theme.LightPrimaryColor
 import com.example.ah_food_seller.ui.theme.LightTextColor
 import com.example.ah_food_seller.ui.theme.Poppins
@@ -249,11 +254,12 @@ private fun CategoryListScreen() {
     val viewModel: CategoryViewModel = viewModel()
     val categories = viewModel.categories.collectAsState().value
 
-    LazyColumn(modifier = Modifier.padding(16.dp)) {
+    LazyColumn(modifier = Modifier) {
         items(categories) { category ->
             MainMenuItem(
                 statusText = 5, // Adjust as per your logic
                 nameText = category.nameCategory,
+                id_Category = category.idCategory
             )
         }
     }
@@ -345,42 +351,55 @@ fun MainMenuTop(mainText: String, onClick: () -> Unit) {
 
 @ExperimentalMaterialApi
 @Composable
-fun MainMenuItem(statusText: Int, nameText: String) {
+fun MainMenuItem(statusText: Int, nameText: String, id_Category: String) {
+    val mainNavController = rememberNavController()
+    var boolean: Boolean = true
     Card(
         backgroundColor = Color.White,
         modifier = Modifier
-            .padding(bottom = 5.dp)
+
             .fillMaxWidth(),
         elevation = 0.dp,
     ) {
-        Row(
-            modifier = Modifier.padding(vertical = 14.dp, horizontal = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            androidx.compose.material.Text(
-                text = nameText,
-                fontFamily = Poppins,
-                color = SecondaryColor,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-            )
+        Column (
+            modifier = Modifier.fillMaxWidth()
+        ){
             Row(
-
-            ){
+                modifier = Modifier.padding(horizontal = 14.dp).fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 androidx.compose.material.Text(
-                    text = "$statusText món",
+                    text = nameText,
                     fontFamily = Poppins,
                     color = SecondaryColor,
-                    fontSize = 14.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(end = 5.dp)
                 )
-                androidx.compose.material.Icon(
-                    painter = painterResource(id = R.drawable.ic_arrow_down),
-                    contentDescription = "",
-                    modifier = Modifier.size(20.dp)
-                )
+
+                IconButton(onClick = {
+                    if (boolean){
+                        mainNavController.navigate("listProduct")
+                        boolean = false
+                    }else{
+                        mainNavController.navigate("main")
+                        boolean = true
+                    }
+                }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_arrow_down),
+                        contentDescription = "Arrow Down",
+                        modifier = Modifier.size(20.dp),
+                        tint = Color.Unspecified // Use Color.Unspecified to keep the original color of the icon
+                    )
+                }
+            }
+            NavHost(navController = mainNavController, startDestination = "main"){
+                composable("main"){
+                }
+                composable("listProduct"){
+                    ProductListScreen(id_Category = id_Category)
+                }
             }
         }
     }
@@ -388,18 +407,20 @@ fun MainMenuItem(statusText: Int, nameText: String) {
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun ProductListScreen() {
+private fun ProductListScreen(id_Category: String) {
     val viewModel: ProductViewModel = viewModel()
     val products by viewModel.products.collectAsState()
 
-    Column(modifier = Modifier.padding(16.dp)) {
+    Column(modifier = Modifier.padding(horizontal = 15.dp)) {
         products.forEach() { product ->
-            val checkedState = remember { mutableStateOf(false) }
-            MainMenuItemProduct(
-                checkedState = checkedState,
-                nameProduct = product.nameProduct,
-                idCategory = product.id_Category
-            )
+            if (product.id_Category == id_Category) {
+                val checkedState = remember { mutableStateOf(product.statusProduct) }
+                MainMenuItemProduct(
+                    checkedState = checkedState,
+                    nameProduct = product.nameProduct,
+                    idCategory = product.id_Category
+                )
+            }
         }
     }
 }
@@ -408,14 +429,14 @@ private fun ProductListScreen() {
 @Composable
 fun MainMenuItemProduct(checkedState: MutableState<Boolean>, nameProduct: String, idCategory: String) {
     Card(
-        backgroundColor = Color.White,
+        backgroundColor = BackgroundColor,
         modifier = Modifier
             .padding(bottom = 5.dp)
             .fillMaxWidth(),
         elevation = 0.dp,
     ) {
         Row(
-            modifier = Modifier.padding(vertical = 14.dp, horizontal = 14.dp),
+            modifier = Modifier.padding(vertical = 10.dp, horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -426,10 +447,18 @@ fun MainMenuItemProduct(checkedState: MutableState<Boolean>, nameProduct: String
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
             )
-            androidx.compose.material.Icon(
-                painter = painterResource(id = R.drawable.ic_arrow_down),
-                contentDescription = "",
-                modifier = Modifier.size(20.dp)
+            Switch(
+                checked = checkedState.value,
+                onCheckedChange = { checkedState.value = it },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = Color.Green.copy(alpha = 0.5f),
+                    uncheckedThumbColor = Color.Gray,
+                    uncheckedTrackColor = Color.LightGray.copy(alpha = 0.5f)
+                ),
+                modifier = Modifier
+                    .padding(10.dp, 5.dp, 0.dp, 5.dp)
+                    .size(20.dp) // Adjust the size as needed
             )
         }
     }
