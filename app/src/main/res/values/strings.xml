@@ -1,3 +1,24 @@
 <resources>
     <string name="app_name">AH_Food_Seller</string>
+    <string name="order_screen">Order</string>
+    <string name="menu_screen">Menu</string>
+    <string name="wallet_screen">Wallet</string>
+    <string name="mailbox_screen">Mail Box</string>
+    <string name="profile_screen">Profile</string>
+    <string name="feedback_screen">Feed Back</string>
+
+    //setting Screen
+    <string name="shopsetting">Cài đặt cửa hàng</string>
+    <string name="applicationsetting">Cài đặt ứng dụng</string>
+
+    <string name="contact">Liên hệ</string>
+    <string name="privacy_policy">Chính sách bảo mật</string>
+
+    <string name="language">Ngôn ngữ</string>
+    <string name="logout">Đăng xuất</string>
+
+    <string name="setting">Cài đặt</string>
+
+    //menu Screen
+    <string name="menu">Thực Đơn</string>
 </resources>
