@@ -77,6 +77,7 @@ fun AddCategoryScreen(
                 addCategory(
                     nameCategory = nameCategory
                 )
+                mainNavController.navigate("detailMenu")
                       },
             modifier = Modifier
                 .padding(top = 20.dp, start = 50.dp, end = 50.dp)

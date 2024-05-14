@@ -119,6 +119,7 @@ fun AddProductScreen(
                     statusProduct = statusProduct,
                     id_Category = id_Category.value
                 )
+                mainNavController.navigate("detailMenu")
                       },
             modifier = Modifier
                 .padding(top = 20.dp, start = 50.dp, end = 50.dp)
