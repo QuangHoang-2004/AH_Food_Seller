@@ -58,6 +58,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.ah_food_seller.R
 import com.example.ah_food_seller.controller.CategoryViewModel
 import com.example.ah_food_seller.controller.ProductViewModel
+import com.example.ah_food_seller.controller.updateProductStatus
 import com.example.ah_food_seller.ui.theme.BackgroundColor
 import com.example.ah_food_seller.ui.theme.LightPrimaryColor
 import com.example.ah_food_seller.ui.theme.LightTextColor
@@ -415,6 +416,7 @@ private fun ProductListScreen(id_Category: String) {
         products.forEach() { product ->
             if (product.id_Category == id_Category) {
                 val checkedState = remember { mutableStateOf(product.statusProduct) }
+                updateProductStatus(productId = product.idProduct, checkedState.value)
                 MainMenuItemProduct(
                     checkedState = checkedState,
                     nameProduct = product.nameProduct,
@@ -457,8 +459,9 @@ fun MainMenuItemProduct(checkedState: MutableState<Boolean>, nameProduct: String
                     uncheckedTrackColor = Color.LightGray.copy(alpha = 0.5f)
                 ),
                 modifier = Modifier
-                    .padding(10.dp, 5.dp, 0.dp, 5.dp)
-                    .size(20.dp) // Adjust the size as needed
+                    .padding(5.dp)
+                    .padding(end = 20.dp)
+                    .size(10.dp) // Adjust the size as needed
             )
         }
     }

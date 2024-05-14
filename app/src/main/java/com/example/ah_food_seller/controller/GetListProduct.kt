@@ -51,30 +51,4 @@ class ProductViewModel : ViewModel() {
             }
         }
     }
-
-    fun updateProductStatus(productId: String, newStatus: Boolean) {
-        if (currentUser != null) {
-            // Lưu trữ trường ID của người dùng hiện tại
-            val restaurantId = currentUser.uid
-
-            // Tạo một map để chỉ định các trường cần cập nhật và giá trị mới của chúng
-            val updates = hashMapOf<String, Any>(
-                "statusProduct" to newStatus
-            )
-
-            // Thực hiện cập nhật chỉ mục "statusProduct" của tài liệu
-            firestore.collection("products")
-                .document(productId) // Sử dụng document với ID của sản phẩm cần cập nhật
-                .update(updates) // Sử dụng phương thức update() để chỉ cập nhật trường "statusProduct"
-                .addOnSuccessListener {
-                    Log.d("updateProductStatus", "DocumentSnapshot successfully updated!")
-                }
-                .addOnFailureListener { e ->
-                    Log.w("updateProductStatus", "Error updating document", e)
-                }
-        } else {
-            Log.w("updateProductStatus", "No current user logged in")
-        }
-    }
-
 }
