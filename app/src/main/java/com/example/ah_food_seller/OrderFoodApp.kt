@@ -43,6 +43,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.ah_food_seller.controller.addCategory
 import com.example.ah_food_seller.model.Restaurant
 import com.example.ah_food_seller.ui.theme.AH_Food_SellerTheme
 import com.example.ah_food_seller.ui.theme.LightPrimaryColor
@@ -71,7 +72,8 @@ private val auth: FirebaseAuth by lazy { Firebase.auth }
 fun OrderFoodApp(
 //    viewModel: OrderViewModel = viewModel(),
     resUser: FirebaseUser,
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
+    mainAuthOrNavController: NavHostController
 ){
     var users by remember { mutableStateOf(auth.currentUser) }
     val userProfile = remember { mutableStateOf<Restaurant?>(null) }
@@ -131,13 +133,14 @@ fun OrderFoodApp(
             }
             composable(route = "Menu") { // Chỉ định route cho ScreenB
                 MenuScreenMain()
+//                addCategory()
             }
             composable(route = "MailBox") { // Chỉ định route cho ScreenA
                 MailBoxScreen()
             }
             composable(route = "Profile") { // Chỉ định route cho ScreenB
                 userProfile.value?.let { users ->
-                    SettingsScreen(users)
+                    SettingsScreen(mainAuthOrNavController = mainAuthOrNavController, users)
                 }
 
             }

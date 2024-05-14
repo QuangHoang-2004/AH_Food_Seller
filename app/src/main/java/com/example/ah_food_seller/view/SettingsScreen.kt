@@ -54,7 +54,7 @@ import kotlinx.coroutines.launch
 @ExperimentalMaterialApi
 @Composable
 fun SettingsScreen(
-   // navController: NavHostController = rememberNavController(),
+    mainAuthOrNavController: NavHostController,
     resUser: Restaurant
 ) {
     val restaurant by remember { mutableStateOf(resUser) }
@@ -66,7 +66,7 @@ fun SettingsScreen(
 //            HeaderText()
             ProfileCardUI(name.toString(),address.toString())
             GeneralOptionsUI()
-            SupportOptionsUI()
+            SupportOptionsUI(mainAuthOrNavController = mainAuthOrNavController)
         }
     }
 }
@@ -286,7 +286,7 @@ fun GeneralSettingItem(icon: Int, mainText: String, onClick: () -> Unit) {
 
 @ExperimentalMaterialApi
 @Composable
-fun SupportOptionsUI() {
+fun SupportOptionsUI(mainAuthOrNavController: NavHostController) {
     val auth: FirebaseAuth by lazy { Firebase.auth }
     var user by remember { mutableStateOf(auth.currentUser) }
     val coroutineScope = rememberCoroutineScope()
@@ -326,7 +326,7 @@ fun SupportOptionsUI() {
                 coroutineScope.launch {
                     auth.signOut()
                     user = null
-//                    navController.navigate("Logout")
+                    mainAuthOrNavController.navigate("Logout")
                 }
             }
         )

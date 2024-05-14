@@ -59,7 +59,7 @@ import com.google.firebase.ktx.Firebase
 
 @Composable
 fun AuthScreen(
-//    onSignedIn: (FirebaseUser) -> Unit
+    onSignedIn: (FirebaseUser) -> Unit
 ) {
     val auth: FirebaseAuth by lazy { Firebase.auth }
     var email by remember { mutableStateOf("") }
@@ -215,7 +215,7 @@ fun AuthScreen(
                         if (isSignIn) {
                             signIn(auth, email, password,
                                 onSignedIn = { signedInUser ->
-//                                    onSignedIn(signedInUser)
+                                    onSignedIn(signedInUser)
                                 },
                                 onSignInError = { errorMessage ->
                                     // Show toast message on sign-in error
@@ -230,7 +230,7 @@ fun AuthScreen(
                                 nameRestaurant,
                                 addressRestaurant
                             ) { signedInUser ->
-//                                onSignedIn(signedInUser)
+                                onSignedIn(signedInUser)
                             }
                         }
                     }
@@ -277,11 +277,11 @@ fun AuthScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewAuthOrMainScreen() {
-    AuthScreen(
-//        onSignedIn = {
-//        }
-    )
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewAuthOrMainScreen() {
+//    AuthScreen(
+////        onSignedIn = {
+////        }
+//    )
+//}

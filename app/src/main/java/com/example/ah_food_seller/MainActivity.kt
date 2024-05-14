@@ -3,33 +3,55 @@ package com.example.ah_food_seller
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.ah_food_seller.ui.theme.AH_Food_SellerTheme
+import com.example.ah_food_seller.view.AddCategoryScreen
+import com.example.ah_food_seller.view.AddProductScreen
 import com.example.ah_food_seller.view.AuthScreen
+import com.example.ah_food_seller.view.MenuDetailScreen
+import com.example.ah_food_seller.view.MenuScreen
 import com.example.ah_food_seller.viewmodel.HomeScreen
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
 class MainActivity : ComponentActivity() {
-    private val auth: FirebaseAuth by lazy { Firebase.auth }
+//    private val auth: FirebaseAuth by lazy { Firebase.auth }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             AH_Food_SellerTheme {
-                AuthOrMainScreen(auth = auth)
+                AuthOrScreenMain()
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun AuthOrMainScreen(auth: FirebaseAuth) {
+fun  AuthOrScreenMain(){
+    val mainAuthOrNavController = rememberNavController()
+
+    NavHost(navController = mainAuthOrNavController, startDestination = "Logout"){
+        composable("Logout"){
+            AuthOrMainScreen(mainAuthOrNavController = mainAuthOrNavController)
+        }
+    }
+}
+
+@Composable
+fun AuthOrMainScreen(mainAuthOrNavController: NavHostController) {
+    val auth: FirebaseAuth by lazy { Firebase.auth }
     var user by remember { mutableStateOf(auth.currentUser) }
 
     if (user == null) {
@@ -39,6 +61,6 @@ fun AuthOrMainScreen(auth: FirebaseAuth) {
             }
         )
     } else {
-        OrderFoodApp(user!!)
+        OrderFoodApp(user!!, mainAuthOrNavController = mainAuthOrNavController)
     }
 }

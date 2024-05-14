@@ -1,23 +1,23 @@
 package com.example.ah_food_seller.controller
 
+import android.nfc.Tag
+import android.util.Log
+import androidx.compose.runtime.Composable
+import com.example.ah_food_seller.AuthOrMainScreen
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-
-fun addMenu(
-    auth: FirebaseAuth,
-    email: String,
-    password: String,
-    onSignedIn: (FirebaseUser) -> Unit,
-    onSignInError: (String) -> Unit // Callback for sign-in error
+val auth = FirebaseAuth.getInstance()
+val currentUser = auth.currentUser
+@Composable
+fun addCategory(
+//    nameCategory: String,
+//    id_Restaurant: String,
+//    onSignedIn: (FirebaseUser) -> Unit
 ) {
-    auth.signInWithEmailAndPassword(email, password)
-        .addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val user = auth.currentUser
-                onSignedIn(user!!)
-            } else {
-                // Handle sign-in failure
-                onSignInError("Invalid email or password")
-            }
-        }
+    if (currentUser != null) {
+        val userId = currentUser.uid
+        Log.d("123", "addCategory: $userId")
+    }else{
+        
+    }
 }
