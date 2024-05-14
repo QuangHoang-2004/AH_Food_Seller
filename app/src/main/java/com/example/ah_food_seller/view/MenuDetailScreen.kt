@@ -57,7 +57,7 @@ import com.example.ah_food_seller.ui.theme.SecondaryColor
 
 @ExperimentalMaterialApi
 @Composable
-fun MenuDetailScreen(mainNavController: NavHostController) {
+fun MenuDetailScreen(mainNavController: NavHostController, idCategory: String) {
     Column(
         modifier = Modifier
     ) {
@@ -114,18 +114,19 @@ fun MenuDetailScreen(mainNavController: NavHostController) {
                 }
             }
         }
-        CategoryListScreen(mainNavController = mainNavController)
+        CategoryListScreen(mainNavController = mainNavController, idCategory = idCategory)
     }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun CategoryListScreen(mainNavController: NavHostController) {
+private fun CategoryListScreen(mainNavController: NavHostController, idCategory: String) {
     val viewModel: CategoryViewModel = viewModel()
     val categories = viewModel.categories.collectAsState().value
 
     LazyColumn(modifier = Modifier) {
         items(categories) { category ->
+//            idCategory = category.idCategory
             MenuDetailItem(
                 mainNavControllerM = mainNavController,
                 statusText = 5, // Adjust as per your logic
@@ -236,7 +237,9 @@ private fun MenuDetailItem(mainNavControllerM: NavHostController,statusText: Int
                     }
 
                     TextButton(
-                        onClick = { /*TODO*/ },
+                        onClick = {
+                            mainNavControllerM.navigate("editCategory")
+                        },
                         modifier = Modifier.padding(end = 15.dp)
                     ) {
                         androidx.compose.material.Text(

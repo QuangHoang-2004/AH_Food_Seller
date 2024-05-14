@@ -36,11 +36,11 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,7 +58,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.ah_food_seller.R
 import com.example.ah_food_seller.controller.CategoryViewModel
 import com.example.ah_food_seller.controller.ProductViewModel
-import com.example.ah_food_seller.controller.getProductCountForCategory
 import com.example.ah_food_seller.controller.updateProductStatus
 import com.example.ah_food_seller.ui.theme.BackgroundColor
 import com.example.ah_food_seller.ui.theme.LightPrimaryColor
@@ -74,19 +73,28 @@ import kotlinx.coroutines.launch
 @Composable
 fun MenuScreenMain(){
     val mainNavController = rememberNavController()
+    var idCategory by remember {
+        mutableStateOf("")
+    }
 
     NavHost(navController = mainNavController, startDestination = "main"){
         composable("main"){
             MenuScreen(mainNavController = mainNavController)
         }
         composable("detailMenu"){
-            MenuDetailScreen(mainNavController = mainNavController)
+            MenuDetailScreen(mainNavController = mainNavController, idCategory = idCategory)
         }
         composable("addCategory"){
             AddCategoryScreen(mainNavController = mainNavController)
         }
         composable("addProduct"){
             AddProductScreen(mainNavController = mainNavController)
+        }
+        composable("editCategory"){
+            EditCategoryScreen(mainNavController = mainNavController, idCategory = idCategory)
+        }
+        composable("editeProduct"){
+            EditProductScreen(mainNavController = mainNavController)
         }
     }
 }
