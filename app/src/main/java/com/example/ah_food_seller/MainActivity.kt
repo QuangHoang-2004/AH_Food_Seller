@@ -50,12 +50,3 @@ fun AuthOrMainScreen(auth: FirebaseAuth) {
 
     }
 }
-
-//@Preview(showBackground = true)
-//@Composable
-//fun GreetingPreview() {
-//    AH_Food_SellerTheme {
-//        val auth: FirebaseAuth by lazy { Firebase.auth }
-//        AuthOrMainScreen(auth = auth)
-//    }
-//}

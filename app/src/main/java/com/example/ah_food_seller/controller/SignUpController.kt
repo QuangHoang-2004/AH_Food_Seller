@@ -8,8 +8,8 @@ fun signUp(
     auth: FirebaseAuth,
     email: String,
     password: String,
-    firstName: String,
-    lastName: String,
+    nameShop: String,
+    addressShop: String,
     onSignedIn: (FirebaseUser) -> Unit
 ) {
     auth.createUserWithEmailAndPassword(email, password)
@@ -19,13 +19,13 @@ fun signUp(
 
                 // Create a user profile in Firestore
                 val userProfile = hashMapOf(
-                    "firstName" to firstName,
-                    "lastName" to lastName,
+                    "nameShop" to nameShop,
+                    "addressShop" to addressShop,
                     "email" to email
                 )
 
                 val firestore = FirebaseFirestore.getInstance()
-                firestore.collection("users")
+                firestore.collection("shops")
                     .document(user!!.uid)
                     .set(userProfile)
                     .addOnSuccessListener {

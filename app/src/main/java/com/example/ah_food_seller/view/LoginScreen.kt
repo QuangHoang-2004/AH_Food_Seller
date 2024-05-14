@@ -58,13 +58,15 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
 @Composable
-fun AuthScreen(onSignedIn: (FirebaseUser) -> Unit) {
+fun AuthScreen(
+//    onSignedIn: (FirebaseUser) -> Unit
+) {
     val auth: FirebaseAuth by lazy { Firebase.auth }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var firstName by remember { mutableStateOf("") }
-    var lastName by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
+    var nameShop by remember { mutableStateOf("") }
+    var addressShop by remember { mutableStateOf("") }
+//    var isLoading by remember { mutableStateOf(false) }
     var isSignIn by remember { mutableStateOf(true) }
     var isPasswordVisible by remember { mutableStateOf(false) }
     // State variables for error message
@@ -114,11 +116,11 @@ fun AuthScreen(onSignedIn: (FirebaseUser) -> Unit) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedTextField(
-                    value = firstName,
+                    value = nameShop,
                     onValueChange = {
-                        firstName = it
+                        nameShop = it
                     },
-                    label = { Text(text = "Họ") },
+                    label = { Text(text = "Tên shop") },
                     leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
@@ -131,11 +133,11 @@ fun AuthScreen(onSignedIn: (FirebaseUser) -> Unit) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedTextField(
-                    value = lastName,
+                    value = addressShop,
                     onValueChange = {
-                        lastName = it
+                        addressShop = it
                     },
-                    label = { Text(text = "Tên ") },
+                    label = { Text(text = "Địa chỉ shop ") },
                     leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
@@ -213,7 +215,7 @@ fun AuthScreen(onSignedIn: (FirebaseUser) -> Unit) {
                         if (isSignIn) {
                             signIn(auth, email, password,
                                 onSignedIn = { signedInUser ->
-                                    onSignedIn(signedInUser)
+//                                    onSignedIn(signedInUser)
                                 },
                                 onSignInError = { errorMessage ->
                                     // Show toast message on sign-in error
@@ -225,10 +227,10 @@ fun AuthScreen(onSignedIn: (FirebaseUser) -> Unit) {
                                 auth,
                                 email,
                                 password,
-                                firstName,
-                                lastName
+                                nameShop,
+                                addressShop
                             ) { signedInUser ->
-                                onSignedIn(signedInUser)
+//                                onSignedIn(signedInUser)
                             }
                         }
                     }
@@ -279,7 +281,7 @@ fun AuthScreen(onSignedIn: (FirebaseUser) -> Unit) {
 @Composable
 fun PreviewAuthOrMainScreen() {
     AuthScreen(
-        onSignedIn = {
-        }
+//        onSignedIn = {
+//        }
     )
 }
