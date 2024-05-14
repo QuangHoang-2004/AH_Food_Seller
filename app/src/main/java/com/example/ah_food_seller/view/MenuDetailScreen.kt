@@ -186,11 +186,14 @@ fun MenuDetailTop(mainText: String, onClick: () -> Unit) {
     }
 }
 
+
 @ExperimentalMaterialApi
 @Composable
 private fun MenuDetailItem(mainNavControllerM: NavHostController,statusText: Int, nameText: String, id_Category: String) {
     val mainNavController = rememberNavController()
     var boolean: Boolean = true
+
+
     Card(
         backgroundColor = Color.White,
         modifier = Modifier

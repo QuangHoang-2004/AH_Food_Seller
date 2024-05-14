@@ -54,7 +54,7 @@ fun AddProductScreen(
     var contentProduct by remember { mutableStateOf("") }
     var moneyProduct by remember { mutableStateOf("") }
     var imgProduct by remember { mutableStateOf("") }
-    var statusProduct:Boolean = false
+    var statusProduct:Boolean = true
     var id_Category = remember { mutableStateOf("") }
 
     var name_Category = remember { mutableStateOf("Chọn danh mục") }

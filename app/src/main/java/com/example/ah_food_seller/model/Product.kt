@@ -5,7 +5,7 @@ data class Product(
     val contentProduct: String = "",
     val moneyProduct: String = "",
     val imgProduct: String = "",
-    val statusProduct: Boolean = false,
+    val statusProduct: Boolean = true,
     val id_Category: String = "",
     val id_Restaurant: String = "",
 )

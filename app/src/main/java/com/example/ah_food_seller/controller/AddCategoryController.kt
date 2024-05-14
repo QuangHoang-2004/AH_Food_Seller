@@ -37,20 +37,42 @@ fun addCategory(
 
 fun deleteCategory(categoryId: String) {
     if (currentUser != null) {
-        // Lấy instance của Firestore
         val firestore = FirebaseFirestore.getInstance()
+        val restaurantId = currentUser.uid
 
-        // Xóa tài liệu Category từ Firestore
-        firestore.collection("categories")
-            .document(categoryId)
-            .delete()
-            .addOnSuccessListener {
-                Log.d("deleteCategory", "DocumentSnapshot successfully deleted!")
+        // Trước tiên, truy vấn tất cả các sản phẩm thuộc về categoryId
+        firestore.collection("products")
+            .whereEqualTo("id_Category", categoryId)
+            .whereEqualTo("id_Restaurant", restaurantId)
+            .get()
+            .addOnSuccessListener { documents ->
+                val batch = firestore.batch()
+
+                // Thêm các thao tác xóa sản phẩm vào batch
+                for (document in documents) {
+                    batch.delete(document.reference)
+                }
+
+                // Truy xuất tài liệu danh mục
+                val categoryRef = firestore.collection("categories").document(categoryId)
+                categoryRef.get()
+                    .addOnSuccessListener { categoryDocument ->
+                        if (categoryDocument.exists()) {
+                            // Thêm thao tác xóa danh mục vào batch
+                            batch.delete(categoryDocument.reference)
+                        }
+
+                        // Thực hiện các thay đổi trong batch
+                        batch.commit()
+                            .addOnSuccessListener {
+                            }
+                            .addOnFailureListener { e ->
+                            }
+                    }
+                    .addOnFailureListener { e ->
+                    }
             }
             .addOnFailureListener { e ->
-                Log.w("deleteCategory", "Error deleting document", e)
             }
-    } else {
-        Log.w("deleteCategory", "No current user logged in")
     }
 }
