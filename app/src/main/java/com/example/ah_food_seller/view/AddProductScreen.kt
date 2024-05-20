@@ -1,15 +1,24 @@
 package com.example.ah_food_seller.view
 
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Card
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExposedDropdownMenuBox
 import androidx.compose.material.Icon
@@ -26,7 +35,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -37,13 +48,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import coil.compose.rememberImagePainter
 import com.example.ah_food_seller.R
 import com.example.ah_food_seller.controller.CategoryViewModel
 import com.example.ah_food_seller.controller.addProduct
-import com.example.ah_food_seller.model.Product
 import com.example.ah_food_seller.ui.theme.Poppins
 import com.example.ah_food_seller.ui.theme.PrimaryColor
 import com.example.ah_food_seller.ui.theme.SecondaryColor
+import com.google.firebase.storage.FirebaseStorage
+
 
 @ExperimentalMaterialApi
 @Composable
@@ -59,8 +72,25 @@ fun AddProductScreen(
 
     var name_Category = remember { mutableStateOf("Chọn danh mục") }
 
+    // State for image URI
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+
+    // Image picker launcher
+    val imageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        imageUri = uri
+        uri?.let {
+            // Handle selected image URI if needed
+            imgProduct = it.toString()
+        }
+    }
+
+
     Column(
-        modifier = Modifier
+        modifier = Modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         var keyboardOptionsNumber = KeyboardOptions(keyboardType = KeyboardType.Number)
         var keyboardOptions = KeyboardOptions()
@@ -70,6 +100,42 @@ fun AddProductScreen(
                 mainNavController.navigate("detailMenu")
             }
         )
+
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0x80000000)),  // Semi-transparent background
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .padding(10.dp)
+                .padding(top = 18.dp)
+                .size(200.dp)
+                .background(Color.LightGray, shape = RoundedCornerShape(10.dp))
+                .border(2.dp, Color.Gray, RoundedCornerShape(10.dp))
+                .clip(RoundedCornerShape(10.dp))
+                .clickable { imageLauncher.launch("image/*") },
+            contentAlignment = Alignment.Center
+        ) {
+            if (imageUri != null) {
+                Image(
+                    painter = rememberImagePainter(imageUri),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(10.dp)),  // Ensure image is clipped to rounded corners
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Text("Chọn ảnh", color = Color.Gray)
+            }
+        }
 
         AddProductItem(
             mainText = stringResource(id = R.string.contact),
@@ -114,19 +180,26 @@ fun AddProductScreen(
             selectedItem = name_Category,
             onItemSelected = { newItem -> name_Category.value = newItem }
         )
-
         Button(
             onClick = {
-                addProduct(
-                    nameProduct = nameProduct,
-                    contentProduct = contentProduct,
-                    moneyProduct = moneyProduct,
-                    imgProduct = imgProduct,
-                    statusProduct = statusProduct,
-                    id_Category = id_Category.value
-                )
-                mainNavController.navigate("detailMenu")
-                      },
+                if (nameProduct.isNotEmpty() && contentProduct.isNotEmpty() && moneyProduct.isNotEmpty() && imageUri != null) {
+                    isLoading = true
+                    imageUri?.let { uri ->
+                        uploadImageAndAddProduct(
+                            uri,
+                            nameProduct,
+                            contentProduct,
+                            moneyProduct,
+                            statusProduct,
+                            id_Category.value,
+                            mainNavController,
+                            onUploadComplete = { isLoading = false }
+                        )
+                    }
+                } else {
+                    // Hiển thị thông báo lỗi khi không nhập đủ dữ liệu
+                }
+            },
             modifier = Modifier
                 .padding(top = 20.dp, start = 50.dp, end = 50.dp)
                 .fillMaxWidth()
@@ -142,7 +215,6 @@ fun AddProductTop(mainText: String, onClick: () -> Unit) {
     Card(
         backgroundColor = Color.White,
         modifier = Modifier
-            .padding(bottom = 8.dp)
             .fillMaxWidth()
         ,
         elevation = 0.dp,
@@ -290,9 +362,38 @@ fun SelectComponent(
     }
 }
 
-//@OptIn(ExperimentalMaterialApi::class)
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewAddProduct() {
-//    AddProductScreen()
-//}
+fun uploadImageAndAddProduct(
+    imageUri: Uri,
+    nameProduct: String,
+    contentProduct: String,
+    moneyProduct: String,
+    statusProduct: Boolean,
+    id_Category: String,
+    mainNavController: NavHostController,
+    onUploadComplete: () -> Unit
+) {
+    // Upload image to Firebase Storage
+    val storageRef = FirebaseStorage.getInstance().reference
+    val imageRef = storageRef.child("products/${System.currentTimeMillis()}.jpg")
+    val uploadTask = imageRef.putFile(imageUri)
+
+    uploadTask.addOnSuccessListener {
+        imageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+            val imgProduct = downloadUri.toString()
+            addProduct(
+                nameProduct = nameProduct,
+                contentProduct = contentProduct,
+                moneyProduct = moneyProduct,
+                imgProduct = imgProduct,
+                statusProduct = statusProduct,
+                id_Category = id_Category
+            )
+            onUploadComplete()
+            mainNavController.navigate("detailMenu")
+        }.addOnFailureListener {
+            onUploadComplete()
+        }
+    }.addOnFailureListener {
+        onUploadComplete()
+    }
+}

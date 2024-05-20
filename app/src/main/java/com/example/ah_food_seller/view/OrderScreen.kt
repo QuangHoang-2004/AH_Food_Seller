@@ -1,6 +1,5 @@
 package com.example.ah_food_seller.view
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -12,53 +11,48 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.ah_food_seller.R
+import com.example.ah_food_seller.controller.CategoryViewModel
+import com.example.ah_food_seller.controller.OrderViewModel
 import com.example.ah_food_seller.model.Restaurant
-import com.example.ah_food_seller.ui.theme.AH_Food_SellerTheme
 import com.example.ah_food_seller.ui.theme.LightPrimaryColor
 import com.example.ah_food_seller.ui.theme.LightTextColor
 import com.example.ah_food_seller.ui.theme.Poppins
@@ -111,23 +105,10 @@ fun OrderScreen(
     navController: NavHostController = rememberNavController(),
     mainNavController: NavHostController
 ) {
-
-
-
-    // Get current back stack entry
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    // Get the name of the current screen
-//    val currentScreen = CupcakeScreen.valueOf(
-//        backStackEntry?.destination?.route ?: CupcakeScreen.Start.name
-//    )
+//    val backStackEntry by navController.currentBackStackEntryAsState()
 
     Scaffold(
         topBar = {
-//            OrderAppBar(
-//                currentScreen = currentScreen,
-//                canNavigateBack = navController.previousBackStackEntry != null,
-//                navigateUp = { navController.navigateUp() }
-//            )
             Box(
                 modifier = Modifier.background(PrimaryColor)
             ){
@@ -219,32 +200,61 @@ fun CurrentOrder(mainNavController: NavHostController) {
     Column(
         modifier = Modifier
     ) {
-        CurrentOrderItem(
-            icon = R.drawable.ic_launcher_background,
-            mainText = stringResource(id = R.string.contact),
-            statusText = 5,
-            nameText = "Hùng",
-            dateText = "7 phút",
-            onClick = {
-                mainNavController.navigate("detailOrder")
-            }
-        )
-        CurrentOrderItem(
-            icon = R.drawable.ic_launcher_background,
-            mainText = stringResource(id = R.string.contact),
-            statusText = 5,
-            nameText = "Hùng",
-            dateText = "7 phút",
-            onClick = {
-                mainNavController.navigate("detailOrder")
-            }
-        )
+        OrderListScreen(mainNavController = mainNavController)
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+private fun OrderListScreen(mainNavController: NavHostController) {
+    val viewModel: OrderViewModel = viewModel()
+    val orders = viewModel.orders.collectAsState().value
+
+    LazyColumn(modifier = Modifier) {
+        items(orders) { order ->
+            var customerName by remember { mutableStateOf<String?>(null) }
+
+            LaunchedEffect(order.idUser) {
+                customerName = viewModel.getCustomerName(order.idUser)
+            }
+
+            CurrentOrderItem(
+                mainText = customerName ?: "Loading...",
+                statusText = 5,
+                nameText = customerName ?: "Loading...",
+                onClick = {
+                    mainNavController.navigate("detailOrder")
+                }
+            )
+        }
+    }
+}
+
+
+//@OptIn(ExperimentalMaterialApi::class)
+//@Composable
+//private fun OderListScreen(mainNavController: NavHostController) {
+//    val viewModel: OrderViewModel = viewModel()
+//    val orders = viewModel.orders.collectAsState().value
+//
+//    LazyColumn(modifier = Modifier) {
+//        items(orders) { order ->
+////            val productCount = getProductCountForCategory(category.idCategory)
+//            CurrentOrderItem(
+//                mainText = stringResource(id = R.string.contact),
+//                statusText = 5,
+//                nameText = getCustomerName(order.idUser),
+//                onClick = {
+//                    mainNavController.navigate("detailOrder")
+//                }
+//            )
+//        }
+//    }
+//}
+
 @ExperimentalMaterialApi
 @Composable
-fun CurrentOrderItem(icon: Int, mainText: String, statusText: Int, nameText: String, dateText: String, onClick: () -> Unit) {
+fun CurrentOrderItem(mainText: String, statusText: Int, nameText: String, onClick: () -> Unit) {
     Card(
         onClick = { onClick() },
         backgroundColor = Color.White,
@@ -619,11 +629,4 @@ fun OrderHistoryBottomItem(icon: Int, mainText: String, dateText: String, onClic
 
         }
     }
-}
-
-@OptIn(ExperimentalMaterialApi::class)
-@Preview(showBackground = true)
-@Composable
-fun PreviewOder() {
-
 }

@@ -1,5 +1,6 @@
 package com.example.ah_food_seller.view
 
+import android.util.Log
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -73,16 +74,13 @@ import kotlinx.coroutines.launch
 @Composable
 fun MenuScreenMain(){
     val mainNavController = rememberNavController()
-    var idCategory by remember {
-        mutableStateOf("")
-    }
 
     NavHost(navController = mainNavController, startDestination = "main"){
         composable("main"){
             MenuScreen(mainNavController = mainNavController)
         }
         composable("detailMenu"){
-            MenuDetailScreen(mainNavController = mainNavController, idCategory = idCategory)
+            MenuDetailScreen(mainNavController = mainNavController)
         }
         composable("addCategory"){
             AddCategoryScreen(mainNavController = mainNavController)
@@ -91,7 +89,7 @@ fun MenuScreenMain(){
             AddProductScreen(mainNavController = mainNavController)
         }
         composable("editCategory"){
-            EditCategoryScreen(mainNavController = mainNavController, idCategory = idCategory)
+            EditCategoryScreen(mainNavController = mainNavController)
         }
         composable("editeProduct"){
             EditProductScreen(mainNavController = mainNavController)

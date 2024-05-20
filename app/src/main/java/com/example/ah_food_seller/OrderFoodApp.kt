@@ -1,5 +1,6 @@
 package com.example.ah_food_seller
 
+import addOrder
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -100,7 +101,7 @@ fun OrderFoodApp(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                        navController.navigate("")
+//                        navController.navigate("")
                           },
                 contentColor = Color.White,
                 modifier = Modifier
@@ -133,7 +134,6 @@ fun OrderFoodApp(
             }
             composable(route = "Menu") { // Chỉ định route cho ScreenB
                 MenuScreenMain()
-//                addCategory()
             }
             composable(route = "MailBox") { // Chỉ định route cho ScreenA
                 MailBoxScreen()

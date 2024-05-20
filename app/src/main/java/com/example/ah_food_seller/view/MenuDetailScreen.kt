@@ -6,10 +6,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Card
@@ -17,15 +15,10 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,7 +27,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -44,20 +36,20 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.ah_food_seller.R
 import com.example.ah_food_seller.controller.CategoryViewModel
-import com.example.ah_food_seller.controller.Product
 import com.example.ah_food_seller.controller.ProductViewModel
 import com.example.ah_food_seller.controller.deleteCategory
 import com.example.ah_food_seller.controller.deleteProduct
-import com.example.ah_food_seller.controller.updateProductStatus
 import com.example.ah_food_seller.ui.theme.BackgroundColor
 import com.example.ah_food_seller.ui.theme.Poppins
 import com.example.ah_food_seller.ui.theme.PrimaryColor
 import com.example.ah_food_seller.ui.theme.Purple500
 import com.example.ah_food_seller.ui.theme.SecondaryColor
+import androidx.core.os.bundleOf
+
 
 @ExperimentalMaterialApi
 @Composable
-fun MenuDetailScreen(mainNavController: NavHostController, idCategory: String) {
+fun MenuDetailScreen(mainNavController: NavHostController) {
     Column(
         modifier = Modifier
     ) {
@@ -114,24 +106,23 @@ fun MenuDetailScreen(mainNavController: NavHostController, idCategory: String) {
                 }
             }
         }
-        CategoryListScreen(mainNavController = mainNavController, idCategory = idCategory)
+        CategoryListScreen(mainNavController = mainNavController)
     }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun CategoryListScreen(mainNavController: NavHostController, idCategory: String) {
+private fun CategoryListScreen(mainNavController: NavHostController) {
     val viewModel: CategoryViewModel = viewModel()
     val categories = viewModel.categories.collectAsState().value
 
     LazyColumn(modifier = Modifier) {
         items(categories) { category ->
-//            idCategory = category.idCategory
             MenuDetailItem(
                 mainNavControllerM = mainNavController,
                 statusText = 5, // Adjust as per your logic
                 nameText = category.nameCategory,
-                id_Category = category.idCategory
+                id_Category = category.idCategory,
             )
         }
     }
@@ -198,7 +189,6 @@ private fun MenuDetailItem(mainNavControllerM: NavHostController,statusText: Int
     Card(
         backgroundColor = Color.White,
         modifier = Modifier
-
             .fillMaxWidth(),
         elevation = 0.dp,
     ) {
@@ -238,6 +228,8 @@ private fun MenuDetailItem(mainNavControllerM: NavHostController,statusText: Int
 
                     TextButton(
                         onClick = {
+                            // Trong MenuDetailScreen
+                            // Trong MenuDetailScreen
                             mainNavControllerM.navigate("editCategory")
                         },
                         modifier = Modifier.padding(end = 15.dp)
@@ -290,6 +282,7 @@ private fun ProductListScreen(id_Category: String, mainNavController: NavHostCon
             if (product.id_Category == id_Category) {
                 MainMenuItemProduct(
                     idProduct = product.idProduct,
+                    imgProduct = product.imgProduct,
                     nameProduct = product.nameProduct,
                     moneyProduct = product.moneyProduct,
                     idCategory = product.id_Category,
@@ -302,7 +295,7 @@ private fun ProductListScreen(id_Category: String, mainNavController: NavHostCon
 
 @ExperimentalMaterialApi
 @Composable
-private fun MainMenuItemProduct(nameProduct: String, moneyProduct: String,idCategory: String, idProduct: String, mainNavController: NavHostController) {
+private fun MainMenuItemProduct(nameProduct: String, moneyProduct: String,idCategory: String, idProduct: String, imgProduct: String, mainNavController: NavHostController) {
     Card(
         backgroundColor = BackgroundColor,
         modifier = Modifier
@@ -333,7 +326,7 @@ private fun MainMenuItemProduct(nameProduct: String, moneyProduct: String,idCate
             }
             TextButton(
                 onClick = {
-                    deleteProduct(productId = idProduct)
+                    deleteProduct(productId = idProduct, imgProductUrl = imgProduct)
                     mainNavController.navigate("listProduct")
                 },
                 modifier = Modifier.padding(end = 15.dp)

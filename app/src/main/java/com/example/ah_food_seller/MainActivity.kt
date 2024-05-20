@@ -25,6 +25,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
+
+
 class MainActivity : ComponentActivity() {
 //    private val auth: FirebaseAuth by lazy { Firebase.auth }
     override fun onCreate(savedInstanceState: Bundle?) {

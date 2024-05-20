@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.ah_food_seller.model.Product
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 
 private val auth = FirebaseAuth.getInstance()
 private val currentUser = auth.currentUser
@@ -32,14 +33,6 @@ fun addProduct(
         // Lưu đối tượng Product vào Firestore
         firestore.collection("products")
             .add(product)
-            .addOnSuccessListener { documentReference ->
-                Log.d("addProduct", "DocumentSnapshot added with ID: ${documentReference.id}")
-            }
-            .addOnFailureListener { e ->
-                Log.w("addProduct", "Error adding document", e)
-            }
-    } else {
-        Log.w("addProduct", "No current user logged in")
     }
 }
 
@@ -57,18 +50,10 @@ fun updateProductStatus(productId: String, newStatus: Boolean) {
         firestore.collection("products")
             .document(productId) // Sử dụng document với ID của sản phẩm cần cập nhật
             .update(updates) // Sử dụng phương thức update() để chỉ cập nhật trường "statusProduct"
-            .addOnSuccessListener {
-                Log.d("updateProductStatus", "DocumentSnapshot successfully updated!")
-            }
-            .addOnFailureListener { e ->
-                Log.w("updateProductStatus", "Error updating document", e)
-            }
-    } else {
-        Log.w("updateProductStatus", "No current user logged in")
     }
 }
 
-fun deleteProduct(productId: String) {
+fun deleteProduct(productId: String, imgProductUrl: String) {
     if (currentUser != null) {
         // Lấy instance của Firestore
         val firestore = FirebaseFirestore.getInstance()
@@ -79,11 +64,11 @@ fun deleteProduct(productId: String) {
             .delete()
             .addOnSuccessListener {
                 Log.d("deleteProduct", "DocumentSnapshot successfully deleted!")
+                // Sau khi xóa sản phẩm thành công, bạn cần xóa hình ảnh từ Firebase Storage
+                val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imgProductUrl)
+                storageRef.delete()
             }
-            .addOnFailureListener { e ->
-                Log.w("deleteProduct", "Error deleting document", e)
-            }
-    } else {
-        Log.w("deleteProduct", "No current user logged in")
+
     }
 }
+
