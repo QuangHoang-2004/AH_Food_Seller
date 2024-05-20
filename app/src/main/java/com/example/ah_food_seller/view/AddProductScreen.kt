@@ -362,7 +362,7 @@ fun SelectComponent(
     }
 }
 
-fun uploadImageAndAddProduct(
+private fun uploadImageAndAddProduct(
     imageUri: Uri,
     nameProduct: String,
     contentProduct: String,

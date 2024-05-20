@@ -36,15 +36,19 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.ah_food_seller.R
 import com.example.ah_food_seller.controller.CategoryViewModel
+import com.example.ah_food_seller.controller.Product
 import com.example.ah_food_seller.controller.ProductViewModel
 import com.example.ah_food_seller.controller.deleteCategory
 import com.example.ah_food_seller.controller.deleteProduct
+import com.example.ah_food_seller.model.Category
 import com.example.ah_food_seller.ui.theme.BackgroundColor
 import com.example.ah_food_seller.ui.theme.Poppins
 import com.example.ah_food_seller.ui.theme.PrimaryColor
 import com.example.ah_food_seller.ui.theme.Purple500
 import com.example.ah_food_seller.ui.theme.SecondaryColor
-import androidx.core.os.bundleOf
+import com.google.gson.Gson
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 
 @ExperimentalMaterialApi
@@ -121,8 +125,7 @@ private fun CategoryListScreen(mainNavController: NavHostController) {
             MenuDetailItem(
                 mainNavControllerM = mainNavController,
                 statusText = 5, // Adjust as per your logic
-                nameText = category.nameCategory,
-                id_Category = category.idCategory,
+                category = category
             )
         }
     }
@@ -181,7 +184,11 @@ fun MenuDetailTop(mainText: String, onClick: () -> Unit) {
 
 @ExperimentalMaterialApi
 @Composable
-private fun MenuDetailItem(mainNavControllerM: NavHostController,statusText: Int, nameText: String, id_Category: String) {
+private fun MenuDetailItem(
+    mainNavControllerM: NavHostController,
+    statusText: Int,
+    category: com.example.ah_food_seller.controller.Category
+) {
     val mainNavController = rememberNavController()
     var boolean: Boolean = true
 
@@ -203,7 +210,7 @@ private fun MenuDetailItem(mainNavControllerM: NavHostController,statusText: Int
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 androidx.compose.material.Text(
-                    text = nameText,
+                    text = category.nameCategory,
                     fontFamily = Poppins,
                     color = SecondaryColor,
                     fontSize = 16.sp,
@@ -212,7 +219,7 @@ private fun MenuDetailItem(mainNavControllerM: NavHostController,statusText: Int
                 Row {
                     TextButton(
                         onClick = {
-                            deleteCategory(categoryId = id_Category)
+                            deleteCategory(categoryId = category.idCategory)
                             mainNavControllerM.navigate("detailMenu")
                         },
                         modifier = Modifier.padding(end = 15.dp)
@@ -228,9 +235,9 @@ private fun MenuDetailItem(mainNavControllerM: NavHostController,statusText: Int
 
                     TextButton(
                         onClick = {
-                            // Trong MenuDetailScreen
-                            // Trong MenuDetailScreen
-                            mainNavControllerM.navigate("editCategory")
+                            val categoryJson = Gson().toJson(category)
+                            val encodedCategoryJson = URLEncoder.encode(categoryJson, StandardCharsets.UTF_8.toString())
+                            mainNavControllerM.navigate("editCategory/${encodedCategoryJson}")
                         },
                         modifier = Modifier.padding(end = 15.dp)
                     ) {
@@ -265,7 +272,7 @@ private fun MenuDetailItem(mainNavControllerM: NavHostController,statusText: Int
                 composable("main"){
                 }
                 composable("listProduct"){
-                    ProductListScreen(id_Category = id_Category, mainNavController = mainNavController)
+                    ProductListScreen(id_Category = category.idCategory, mainNavController = mainNavController, mainNavControllerM = mainNavControllerM)
                 }
             }
         }
@@ -273,7 +280,7 @@ private fun MenuDetailItem(mainNavControllerM: NavHostController,statusText: Int
 }
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun ProductListScreen(id_Category: String, mainNavController: NavHostController) {
+private fun ProductListScreen(id_Category: String, mainNavController: NavHostController, mainNavControllerM: NavHostController) {
     val viewModel: ProductViewModel = viewModel()
     val products by viewModel.products.collectAsState()
 
@@ -281,12 +288,9 @@ private fun ProductListScreen(id_Category: String, mainNavController: NavHostCon
         products.forEach() { product ->
             if (product.id_Category == id_Category) {
                 MainMenuItemProduct(
-                    idProduct = product.idProduct,
-                    imgProduct = product.imgProduct,
-                    nameProduct = product.nameProduct,
-                    moneyProduct = product.moneyProduct,
-                    idCategory = product.id_Category,
-                    mainNavController = mainNavController
+                    product = product,
+                    mainNavController = mainNavController,
+                    mainNavControllerM = mainNavControllerM
                 )
             }
         }
@@ -295,7 +299,11 @@ private fun ProductListScreen(id_Category: String, mainNavController: NavHostCon
 
 @ExperimentalMaterialApi
 @Composable
-private fun MainMenuItemProduct(nameProduct: String, moneyProduct: String,idCategory: String, idProduct: String, imgProduct: String, mainNavController: NavHostController) {
+private fun MainMenuItemProduct(
+    product: Product,
+    mainNavController: NavHostController,
+    mainNavControllerM: NavHostController
+    ) {
     Card(
         backgroundColor = BackgroundColor,
         modifier = Modifier
@@ -310,34 +318,53 @@ private fun MainMenuItemProduct(nameProduct: String, moneyProduct: String,idCate
         ) {
             Column {
                 androidx.compose.material.Text(
-                    text = nameProduct,
+                    text = product.nameProduct,
                     fontFamily = Poppins,
                     color = SecondaryColor,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                 )
                 androidx.compose.material.Text(
-                    text = moneyProduct,
+                    text = product.moneyProduct,
                     fontFamily = Poppins,
                     color = SecondaryColor,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                 )
             }
-            TextButton(
-                onClick = {
-                    deleteProduct(productId = idProduct, imgProductUrl = imgProduct)
-                    mainNavController.navigate("listProduct")
-                },
-                modifier = Modifier.padding(end = 15.dp)
-            ) {
-                androidx.compose.material.Text(
-                    text = "Xóa",
-                    fontFamily = Poppins,
-                    color = Purple500,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                )
+            Row {
+                TextButton(
+                    onClick = {
+                        deleteProduct(productId = product.idProduct, imgProductUrl = product.imgProduct)
+                        mainNavController.navigate("listProduct")
+                    },
+                    modifier = Modifier.padding(end = 15.dp)
+                ) {
+                    androidx.compose.material.Text(
+                        text = "Xóa",
+                        fontFamily = Poppins,
+                        color = Purple500,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                TextButton(
+                    onClick = {
+                        val productJson = Gson().toJson(product)
+                        val encodedProductJson =
+                            URLEncoder.encode(productJson, StandardCharsets.UTF_8.toString())
+                        mainNavControllerM.navigate("editeProduct/${encodedProductJson}")
+                    },
+                    modifier = Modifier.padding(end = 15.dp)
+                ) {
+                    androidx.compose.material.Text(
+                        text = "Sửa",
+                        fontFamily = Poppins,
+                        color = Purple500,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
             }
         }
     }

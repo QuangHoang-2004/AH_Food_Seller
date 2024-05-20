@@ -88,11 +88,11 @@ fun MenuScreenMain(){
         composable("addProduct"){
             AddProductScreen(mainNavController = mainNavController)
         }
-        composable("editCategory"){
-            EditCategoryScreen(mainNavController = mainNavController)
+        composable("editCategory/{category}"){backStackEntry ->
+            EditCategoryScreen(mainNavController = mainNavController, navBackStackEntry = backStackEntry)
         }
-        composable("editeProduct"){
-            EditProductScreen(mainNavController = mainNavController)
+        composable("editeProduct/{product}"){backStackEntry ->
+            EditProductScreen(mainNavController = mainNavController, navBackStackEntry = backStackEntry)
         }
     }
 }

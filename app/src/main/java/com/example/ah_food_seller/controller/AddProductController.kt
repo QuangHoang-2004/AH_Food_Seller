@@ -72,3 +72,44 @@ fun deleteProduct(productId: String, imgProductUrl: String) {
     }
 }
 
+fun updateProduct(
+    productId: String,
+    nameProduct: String,
+    contentProduct: String,
+    moneyProduct: String,
+    imgProduct: String,
+    statusProduct: Boolean,
+    id_Category: String,
+) {
+    if (currentUser != null) {
+        val restaurantId = currentUser.uid
+
+        // Tạo một đối tượng Product cập nhật
+        val product = Product(
+            id = productId,
+            nameProduct = nameProduct,
+            contentProduct = contentProduct,
+            moneyProduct = moneyProduct,
+            imgProduct = imgProduct,
+            statusProduct = statusProduct,
+            id_Category = id_Category,
+            id_Restaurant = restaurantId
+        )
+
+        // Truy xuất đối tượng sản phẩm cần cập nhật trong Firestore
+        val productRef = firestore.collection("products").document(productId)
+
+        // Thực hiện cập nhật dữ liệu cho sản phẩm
+        productRef.set(product)
+            .addOnSuccessListener {
+                // Xử lý khi cập nhật thành công
+                Log.d("UpdateProduct", "Product updated successfully")
+            }
+            .addOnFailureListener { e ->
+                // Xử lý khi cập nhật thất bại
+                Log.e("UpdateProduct", "Error updating product", e)
+            }
+    }
+}
+
+

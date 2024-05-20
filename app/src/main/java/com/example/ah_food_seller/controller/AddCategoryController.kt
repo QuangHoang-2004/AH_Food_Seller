@@ -78,6 +78,26 @@ fun deleteCategory(categoryId: String) {
     }
 }
 
+fun updateCategoryName(categoryId: String, newName: String) {
+    if (currentUser != null) {
+        val firestore = FirebaseFirestore.getInstance()
+
+        // Truy xuất tài liệu danh mục bằng ID
+        val categoryRef = firestore.collection("categories").document(categoryId)
+
+        // Thực hiện cập nhật tên mới cho danh mục
+        categoryRef.update("nameCategory", newName)
+            .addOnSuccessListener {
+                // Xử lý khi cập nhật thành công
+            }
+            .addOnFailureListener { e ->
+                // Xử lý khi cập nhật thất bại
+            }
+    }
+}
+
+
+
 suspend fun getProductCountForCategory(categoryId: String): Int {
     val firestore = FirebaseFirestore.getInstance()
 

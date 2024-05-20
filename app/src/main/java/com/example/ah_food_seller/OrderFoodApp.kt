@@ -1,6 +1,5 @@
 package com.example.ah_food_seller
 
-import addOrder
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -125,9 +124,6 @@ fun OrderFoodApp(
                 .padding(innerPadding)
         ){
             composable(route = "Order") { // Chỉ định route cho ScreenA
-//                MainContent(
-//                    user = user!!
-//                )
                 OrderScreenMain(
                     user = resUser!!
                 )

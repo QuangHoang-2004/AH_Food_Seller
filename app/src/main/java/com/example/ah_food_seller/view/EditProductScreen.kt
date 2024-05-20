@@ -1,15 +1,23 @@
 package com.example.ah_food_seller.view
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Card
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExposedDropdownMenuBox
 import androidx.compose.material.Icon
@@ -26,7 +34,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -36,28 +46,54 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
+import coil.compose.rememberImagePainter
 import com.example.ah_food_seller.R
+import com.example.ah_food_seller.controller.Product
 import com.example.ah_food_seller.controller.CategoryViewModel
-import com.example.ah_food_seller.controller.addProduct
-import com.example.ah_food_seller.model.Product
+import com.example.ah_food_seller.controller.updateProduct
 import com.example.ah_food_seller.ui.theme.Poppins
 import com.example.ah_food_seller.ui.theme.PrimaryColor
 import com.example.ah_food_seller.ui.theme.SecondaryColor
+import com.google.firebase.storage.FirebaseStorage
+import com.google.gson.Gson
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 @ExperimentalMaterialApi
 @Composable
 fun EditProductScreen(
-    mainNavController: NavHostController
+    mainNavController: NavHostController,
+    navBackStackEntry: NavBackStackEntry
 ) {
-    var nameProduct by remember { mutableStateOf("") }
-    var contentProduct by remember { mutableStateOf("") }
-    var moneyProduct by remember { mutableStateOf("") }
-    var imgProduct by remember { mutableStateOf("") }
-    var statusProduct:Boolean = true
-    var id_Category = remember { mutableStateOf("") }
+    val categoryJson = navBackStackEntry.arguments?.getString("product") ?: ""
+    val decodedCategoryJson = URLDecoder.decode(categoryJson, StandardCharsets.UTF_8.toString())
+    val product = Gson().fromJson(decodedCategoryJson, Product::class.java)
+
+    var nameProduct by remember { mutableStateOf(product.nameProduct) }
+    var contentProduct by remember { mutableStateOf(product.contentProduct) }
+    var moneyProduct by remember { mutableStateOf(product.moneyProduct) }
+    var imgProduct by remember { mutableStateOf(product.imgProduct) }
+    var statusProduct:Boolean = product.statusProduct
+    var id_Category = remember { mutableStateOf(product.id_Category) }
 
     var name_Category = remember { mutableStateOf("Chọn danh mục") }
+
+    // State for image URI
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+
+    // Image picker launcher
+    val imageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        imageUri = uri
+        uri?.let {
+            // Handle selected image URI if needed
+            imgProduct = it.toString()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -70,6 +106,42 @@ fun EditProductScreen(
                 mainNavController.navigate("detailMenu")
             }
         )
+
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0x80000000)),  // Semi-transparent background
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .padding(10.dp)
+                .padding(top = 18.dp)
+                .size(200.dp)
+                .background(Color.LightGray, shape = RoundedCornerShape(10.dp))
+                .border(2.dp, Color.Gray, RoundedCornerShape(10.dp))
+                .clip(RoundedCornerShape(10.dp))
+                .clickable { imageLauncher.launch("image/*") },
+            contentAlignment = Alignment.Center
+        ) {
+            if (imageUri != null) {
+                Image(
+                    painter = rememberImagePainter(imageUri),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(10.dp)),  // Ensure image is clipped to rounded corners
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Text("Chọn ảnh", color = Color.Gray)
+            }
+        }
 
         EditProductItem(
             mainText = stringResource(id = R.string.contact),
@@ -117,15 +189,24 @@ fun EditProductScreen(
 
         Button(
             onClick = {
-                addProduct(
-                    nameProduct = nameProduct,
-                    contentProduct = contentProduct,
-                    moneyProduct = moneyProduct,
-                    imgProduct = imgProduct,
-                    statusProduct = statusProduct,
-                    id_Category = id_Category.value
-                )
-                mainNavController.navigate("detailMenu")
+                if (nameProduct.isNotEmpty() && contentProduct.isNotEmpty() && moneyProduct.isNotEmpty() && imageUri != null) {
+                    isLoading = true
+                    imageUri?.let { uri ->
+                        uploadImageAndProduct(
+                            uri,
+                            product.idProduct,
+                            nameProduct,
+                            contentProduct,
+                            moneyProduct,
+                            statusProduct,
+                            id_Category.value,
+                            mainNavController,
+                            onUploadComplete = { isLoading = false }
+                        )
+                    }
+                } else {
+                    // Hiển thị thông báo lỗi khi không nhập đủ dữ liệu
+                }
                       },
             modifier = Modifier
                 .padding(top = 20.dp, start = 50.dp, end = 50.dp)
@@ -290,9 +371,40 @@ fun SelectComponentEdit(
     }
 }
 
-//@OptIn(ExperimentalMaterialApi::class)
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewAddProduct() {
-//    AddProductScreen()
-//}
+private fun uploadImageAndProduct(
+    imageUri: Uri,
+    idProduct: String,
+    nameProduct: String,
+    contentProduct: String,
+    moneyProduct: String,
+    statusProduct: Boolean,
+    id_Category: String,
+    mainNavController: NavHostController,
+    onUploadComplete: () -> Unit
+) {
+    // Upload image to Firebase Storage
+    val storageRef = FirebaseStorage.getInstance().reference
+    val imageRef = storageRef.child("products/${System.currentTimeMillis()}.jpg")
+    val uploadTask = imageRef.putFile(imageUri)
+
+    uploadTask.addOnSuccessListener {
+        imageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+            val imgProduct = downloadUri.toString()
+            updateProduct(
+                productId = idProduct,
+                nameProduct = nameProduct,
+                contentProduct = contentProduct,
+                moneyProduct = moneyProduct,
+                imgProduct = imgProduct,
+                statusProduct = statusProduct,
+                id_Category = id_Category
+            )
+            onUploadComplete()
+            mainNavController.navigate("detailMenu")
+        }.addOnFailureListener {
+            onUploadComplete()
+        }
+    }.addOnFailureListener {
+        onUploadComplete()
+    }
+}

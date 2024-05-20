@@ -1,5 +1,6 @@
 package com.example.ah_food_seller.view
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,19 +27,30 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import com.example.ah_food_seller.R
+import com.example.ah_food_seller.controller.Category
+import com.example.ah_food_seller.controller.updateCategoryName
 import com.example.ah_food_seller.ui.theme.Poppins
 import com.example.ah_food_seller.ui.theme.PrimaryColor
 import com.example.ah_food_seller.ui.theme.SecondaryColor
+import com.google.gson.Gson
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 @ExperimentalMaterialApi
 @Composable
 fun EditCategoryScreen(
     mainNavController: NavHostController,
+    navBackStackEntry: NavBackStackEntry
 ) {
+    val categoryJson = navBackStackEntry.arguments?.getString("category") ?: ""
+    val decodedCategoryJson = URLDecoder.decode(categoryJson, StandardCharsets.UTF_8.toString())
+    val category = Gson().fromJson(decodedCategoryJson, Category::class.java)
+
     var nameCategory by remember {
-        mutableStateOf("")
+        mutableStateOf(category.nameCategory)
     }
     Column(
         modifier = Modifier
@@ -62,7 +74,7 @@ fun EditCategoryScreen(
 
         Button(
             onClick = {
-
+                updateCategoryName(categoryId = category.idCategory, newName = nameCategory)
                 mainNavController.navigate("detailMenu")
                       },
             modifier = Modifier
