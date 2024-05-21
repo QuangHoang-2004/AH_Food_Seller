@@ -1,5 +1,6 @@
 package com.example.ah_food_seller.view
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -352,7 +353,7 @@ private fun MainMenuItemProduct(
                     onClick = {
                         val productJson = Gson().toJson(product)
                         val encodedProductJson =
-                            URLEncoder.encode(productJson, StandardCharsets.UTF_8.toString())
+                            Uri.encode(productJson, StandardCharsets.UTF_8.toString())
                         mainNavControllerM.navigate("editeProduct/${encodedProductJson}")
                     },
                     modifier = Modifier.padding(end = 15.dp)

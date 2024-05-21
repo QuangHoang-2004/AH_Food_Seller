@@ -77,39 +77,60 @@ fun updateProduct(
     nameProduct: String,
     contentProduct: String,
     moneyProduct: String,
-    imgProduct: String,
+    imgProduct: String?,
     statusProduct: Boolean,
     id_Category: String,
 ) {
     if (currentUser != null) {
         val restaurantId = currentUser.uid
 
-        // Tạo một đối tượng Product cập nhật
-        val product = Product(
-            id = productId,
-            nameProduct = nameProduct,
-            contentProduct = contentProduct,
-            moneyProduct = moneyProduct,
-            imgProduct = imgProduct,
-            statusProduct = statusProduct,
-            id_Category = id_Category,
-            id_Restaurant = restaurantId
-        )
+        // Truy xuất giá trị của trường imgProduct từ Firestore trước khi cập nhật
+        firestore.collection("products").document(productId).get()
+            .addOnSuccessListener { document ->
+                if (document != null) {
+                    // Lấy giá trị imgProduct hiện tại từ Firestore
+                    val currentImgProduct = document.getString("imgProduct") ?: ""
 
-        // Truy xuất đối tượng sản phẩm cần cập nhật trong Firestore
-        val productRef = firestore.collection("products").document(productId)
+                    // Sử dụng giá trị imgProduct hiện tại nếu imgProduct mới truyền vào là null hoặc rỗng
+                    val finalImgProduct = imgProduct ?: currentImgProduct
 
-        // Thực hiện cập nhật dữ liệu cho sản phẩm
-        productRef.set(product)
-            .addOnSuccessListener {
-                // Xử lý khi cập nhật thành công
-                Log.d("UpdateProduct", "Product updated successfully")
+                    // Tạo một đối tượng Product cập nhật
+                    val product = Product(
+                        nameProduct = nameProduct,
+                        contentProduct = contentProduct,
+                        moneyProduct = moneyProduct,
+                        imgProduct = finalImgProduct,
+                        statusProduct = statusProduct,
+                        id_Category = id_Category,
+                        id_Restaurant = restaurantId
+                    )
+
+                    // Truy xuất đối tượng sản phẩm cần cập nhật trong Firestore
+                    val productRef = firestore.collection("products").document(productId)
+
+                    // Thực hiện cập nhật dữ liệu cho sản phẩm
+                    productRef.set(product)
+                        .addOnSuccessListener {
+                            // Xử lý khi cập nhật thành công
+                        }
+                        .addOnFailureListener { e ->
+                            // Xử lý khi cập nhật thất bại
+                        }
+
+                    if (imgProduct != currentImgProduct && imgProduct != null) {
+                        // Nếu khác, xóa ảnh cũ trước khi cập nhật với ảnh mới
+                        val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(currentImgProduct)
+                        storageRef.delete()
+                    }
+                } else {
+                }
             }
             .addOnFailureListener { e ->
-                // Xử lý khi cập nhật thất bại
-                Log.e("UpdateProduct", "Error updating product", e)
+                // Xử lý khi không thể truy xuất dữ liệu từ Firestore
             }
     }
 }
+
+
 
 

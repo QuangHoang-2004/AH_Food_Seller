@@ -1,7 +1,6 @@
 package com.example.ah_food_seller.model
 
 data class Product(
-    val id : String = "",
     val nameProduct: String = "",
     val contentProduct: String = "",
     val moneyProduct: String = "",

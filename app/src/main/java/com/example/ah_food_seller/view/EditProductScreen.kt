@@ -26,6 +26,7 @@ import androidx.compose.material.TextField
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -52,14 +53,13 @@ import coil.compose.rememberImagePainter
 import com.example.ah_food_seller.R
 import com.example.ah_food_seller.controller.Product
 import com.example.ah_food_seller.controller.CategoryViewModel
+import com.example.ah_food_seller.controller.getProductImgById
 import com.example.ah_food_seller.controller.updateProduct
 import com.example.ah_food_seller.ui.theme.Poppins
 import com.example.ah_food_seller.ui.theme.PrimaryColor
 import com.example.ah_food_seller.ui.theme.SecondaryColor
 import com.google.firebase.storage.FirebaseStorage
 import com.google.gson.Gson
-import java.net.URLDecoder
-import java.nio.charset.StandardCharsets
 
 @ExperimentalMaterialApi
 @Composable
@@ -68,17 +68,27 @@ fun EditProductScreen(
     navBackStackEntry: NavBackStackEntry
 ) {
     val categoryJson = navBackStackEntry.arguments?.getString("product") ?: ""
-    val decodedCategoryJson = URLDecoder.decode(categoryJson, StandardCharsets.UTF_8.toString())
+    val decodedCategoryJson = Uri.decode(categoryJson)
     val product = Gson().fromJson(decodedCategoryJson, Product::class.java)
 
     var nameProduct by remember { mutableStateOf(product.nameProduct) }
     var contentProduct by remember { mutableStateOf(product.contentProduct) }
     var moneyProduct by remember { mutableStateOf(product.moneyProduct) }
-    var imgProduct by remember { mutableStateOf(product.imgProduct) }
-    var statusProduct:Boolean = product.statusProduct
-    var id_Category = remember { mutableStateOf(product.id_Category) }
+    // Gán giá trị khởi tạo cho imgProduct
+    var imgProduct by remember { mutableStateOf("") }
 
-    var name_Category = remember { mutableStateOf("Chọn danh mục") }
+    // Gọi hàm getProductImgById khi productId thay đổi
+    LaunchedEffect(product.idProduct) {
+        val idProduct = product.idProduct
+        val img = getProductImgById(idProduct)
+        // Cập nhật giá trị imgProduct khi kết quả trả về
+        imgProduct = img ?: ""
+    }
+
+    val statusProduct:Boolean = product.statusProduct
+    val id_Category = remember { mutableStateOf(product.id_Category) }
+
+    val name_Category = remember { mutableStateOf("Chọn danh mục") }
 
     // State for image URI
     var imageUri by remember { mutableStateOf<Uri?>(null) }
@@ -96,12 +106,12 @@ fun EditProductScreen(
     }
 
     Column(
-        modifier = Modifier
+        modifier = Modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        var keyboardOptionsNumber = KeyboardOptions(keyboardType = KeyboardType.Number)
-        var keyboardOptions = KeyboardOptions()
+        val keyboardOptionsNumber = KeyboardOptions(keyboardType = KeyboardType.Number)
+        val keyboardOptions = KeyboardOptions()
         EditProductTop(
-            mainText = stringResource(id = R.string.contact),
             onClick = {
                 mainNavController.navigate("detailMenu")
             }
@@ -129,9 +139,9 @@ fun EditProductScreen(
                 .clickable { imageLauncher.launch("image/*") },
             contentAlignment = Alignment.Center
         ) {
-            if (imageUri != null) {
+            if (imgProduct.isNotEmpty()) {
                 Image(
-                    painter = rememberImagePainter(imageUri),
+                    painter = rememberImagePainter(imgProduct),
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
@@ -144,39 +154,27 @@ fun EditProductScreen(
         }
 
         EditProductItem(
-            mainText = stringResource(id = R.string.contact),
             nameText = "Tên món",
             value = nameProduct,
             onValueChange = { nameProduct = it },
             lable = "Nhập tên món.",
             keyboardOptions = keyboardOptions,
-            modifier = Modifier
-                .padding(bottom = 10.dp)
-                .fillMaxWidth()
         )
 
         EditProductItem(
-            mainText = stringResource(id = R.string.contact),
             nameText = "Miêu tả",
             value = contentProduct,
             onValueChange = { contentProduct = it },
             lable = "Nhập miêu tả.",
             keyboardOptions = keyboardOptions,
-            modifier = Modifier
-                .padding(bottom = 10.dp)
-                .fillMaxWidth()
         )
 
         EditProductItem(
-            mainText = stringResource(id = R.string.contact),
             nameText = "Giá",
             value = moneyProduct,
             onValueChange = { moneyProduct = it },
             lable = "Nhập giá tiền.",
             keyboardOptions = keyboardOptionsNumber,
-            modifier = Modifier
-                .padding(bottom = 10.dp)
-                .fillMaxWidth()
         )
         SelectComponentEdit(
             modifier = Modifier
@@ -189,11 +187,23 @@ fun EditProductScreen(
 
         Button(
             onClick = {
-                if (nameProduct.isNotEmpty() && contentProduct.isNotEmpty() && moneyProduct.isNotEmpty() && imageUri != null) {
+                if (nameProduct.isNotEmpty() && contentProduct.isNotEmpty() && moneyProduct.isNotEmpty()) {
                     isLoading = true
-                    imageUri?.let { uri ->
+                    if (imageUri != null) {
                         uploadImageAndProduct(
-                            uri,
+                            imageUri,
+                            product.idProduct,
+                            nameProduct,
+                            contentProduct,
+                            moneyProduct,
+                            statusProduct,
+                            id_Category.value,
+                            mainNavController,
+                            onUploadComplete = { isLoading = false }
+                        )
+                    } else {
+                        uploadImageAndProduct(
+                            null, // Truyền null vào khi không chọn ảnh
                             product.idProduct,
                             nameProduct,
                             contentProduct,
@@ -204,10 +214,9 @@ fun EditProductScreen(
                             onUploadComplete = { isLoading = false }
                         )
                     }
-                } else {
-                    // Hiển thị thông báo lỗi khi không nhập đủ dữ liệu
                 }
-                      },
+
+            },
             modifier = Modifier
                 .padding(top = 20.dp, start = 50.dp, end = 50.dp)
                 .fillMaxWidth()
@@ -219,11 +228,10 @@ fun EditProductScreen(
 
 @ExperimentalMaterialApi
 @Composable
-fun EditProductTop(mainText: String, onClick: () -> Unit) {
+fun EditProductTop(onClick: () -> Unit) {
     Card(
         backgroundColor = Color.White,
         modifier = Modifier
-            .padding(bottom = 8.dp)
             .fillMaxWidth()
         ,
         elevation = 0.dp,
@@ -250,7 +258,7 @@ fun EditProductTop(mainText: String, onClick: () -> Unit) {
                     )
                 }
                 androidx.compose.material.Text(
-                    text = "Thêm món mới",
+                    text = "Sửa món ăn",
                     style = TextStyle(textAlign = TextAlign.Center),
                     fontFamily = Poppins,
                     color = SecondaryColor,
@@ -271,12 +279,10 @@ fun EditProductTop(mainText: String, onClick: () -> Unit) {
 @Composable
 fun EditProductItem(
     keyboardOptions: KeyboardOptions,
-    mainText: String,
     nameText: String,
     lable: String,
     value: String,
     onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier
                    ) {
     Card(
         backgroundColor = Color.White,
@@ -320,6 +326,14 @@ fun SelectComponentEdit(
 
     var expanded by remember { mutableStateOf(false) }
 
+    // Tìm danh mục tương ứng với id_Category được cung cấp
+    val selectedCategory = categories.find { it.idCategory == id_Category.value }
+
+    // Đặt giá trị ban đầu của selectedItem là tên của danh mục được chọn, nếu có
+    if (selectedCategory != null) {
+        selectedItem.value = selectedCategory.nameCategory
+    }
+
     Column (
         modifier = modifier
     ){
@@ -342,7 +356,7 @@ fun SelectComponentEdit(
                 trailingIcon = {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_arrow_down),
-                        contentDescription = "Dropdown icon",
+                        contentDescription = "Biểu tượng mũi tên",
                         modifier = Modifier
 //                            .clickable { expanded = !expanded }
                             .size(24.dp)
@@ -371,8 +385,9 @@ fun SelectComponentEdit(
     }
 }
 
+
 private fun uploadImageAndProduct(
-    imageUri: Uri,
+    imageUri: Uri?,
     idProduct: String,
     nameProduct: String,
     contentProduct: String,
@@ -382,29 +397,42 @@ private fun uploadImageAndProduct(
     mainNavController: NavHostController,
     onUploadComplete: () -> Unit
 ) {
-    // Upload image to Firebase Storage
-    val storageRef = FirebaseStorage.getInstance().reference
-    val imageRef = storageRef.child("products/${System.currentTimeMillis()}.jpg")
-    val uploadTask = imageRef.putFile(imageUri)
+    if (imageUri != null) {
+        val storageRef = FirebaseStorage.getInstance().reference
+        val imageRef = storageRef.child("products/${System.currentTimeMillis()}.jpg")
+        val uploadTask = imageRef.putFile(imageUri)
 
-    uploadTask.addOnSuccessListener {
-        imageRef.downloadUrl.addOnSuccessListener { downloadUri ->
-            val imgProduct = downloadUri.toString()
-            updateProduct(
-                productId = idProduct,
-                nameProduct = nameProduct,
-                contentProduct = contentProduct,
-                moneyProduct = moneyProduct,
-                imgProduct = imgProduct,
-                statusProduct = statusProduct,
-                id_Category = id_Category
-            )
-            onUploadComplete()
-            mainNavController.navigate("detailMenu")
+        uploadTask.addOnSuccessListener {
+            imageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                val imgProductNew = downloadUri.toString()
+                updateProduct(
+                    productId = idProduct,
+                    nameProduct = nameProduct,
+                    contentProduct = contentProduct,
+                    moneyProduct = moneyProduct,
+                    imgProduct = imgProductNew,
+                    statusProduct = statusProduct,
+                    id_Category = id_Category
+                )
+                onUploadComplete()
+                mainNavController.navigate("detailMenu")
+            }.addOnFailureListener {
+                onUploadComplete()
+            }
         }.addOnFailureListener {
             onUploadComplete()
         }
-    }.addOnFailureListener {
+    } else {
+        updateProduct(
+            productId = idProduct,
+            nameProduct = nameProduct,
+            contentProduct = contentProduct,
+            moneyProduct = moneyProduct,
+            imgProduct = null,
+            statusProduct = statusProduct,
+            id_Category = id_Category
+        )
         onUploadComplete()
+        mainNavController.navigate("detailMenu")
     }
 }
