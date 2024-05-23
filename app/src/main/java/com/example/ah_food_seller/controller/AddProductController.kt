@@ -37,10 +37,6 @@ fun addProduct(
 }
 
 fun updateProductStatus(productId: String, newStatus: Boolean) {
-    if (currentUser != null) {
-        // Lưu trữ trường ID của người dùng hiện tại
-        val restaurantId = currentUser.uid
-
         // Tạo một map để chỉ định các trường cần cập nhật và giá trị mới của chúng
         val updates = hashMapOf<String, Any>(
             "statusProduct" to newStatus
@@ -50,11 +46,9 @@ fun updateProductStatus(productId: String, newStatus: Boolean) {
         firestore.collection("products")
             .document(productId) // Sử dụng document với ID của sản phẩm cần cập nhật
             .update(updates) // Sử dụng phương thức update() để chỉ cập nhật trường "statusProduct"
-    }
 }
 
 fun deleteProduct(productId: String, imgProductUrl: String) {
-    if (currentUser != null) {
         // Lấy instance của Firestore
         val firestore = FirebaseFirestore.getInstance()
 
@@ -68,8 +62,6 @@ fun deleteProduct(productId: String, imgProductUrl: String) {
                 val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imgProductUrl)
                 storageRef.delete()
             }
-
-    }
 }
 
 fun updateProduct(

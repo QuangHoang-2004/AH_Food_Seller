@@ -1,13 +1,13 @@
 package com.example.ah_food_seller.view
 
 import android.net.Uri
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,15 +22,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ExposedDropdownMenuBox
-import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,40 +36,32 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberImagePainter
 import com.example.ah_food_seller.R
-import com.example.ah_food_seller.controller.CategoryViewModel
-import com.example.ah_food_seller.controller.addProduct
 import com.example.ah_food_seller.ui.theme.Poppins
 import com.example.ah_food_seller.ui.theme.PrimaryColor
 import com.example.ah_food_seller.ui.theme.SecondaryColor
-import com.google.firebase.storage.FirebaseStorage
 
 
+//private val auth = FirebaseAuth.getInstance()
+//private val currentUser = auth.currentUser
 @ExperimentalMaterialApi
 @Composable
-fun AddProductScreen(
+fun SettingDetailScreen(
     mainNavController: NavHostController
 ) {
-    var nameProduct by remember { mutableStateOf("") }
-    var contentProduct by remember { mutableStateOf("") }
-    var moneyProduct by remember { mutableStateOf("") }
+    var nameRestaurant by remember { mutableStateOf("") }
+    var addressRestaurant by remember { mutableStateOf("") }
     var imgProduct by remember { mutableStateOf("") }
-    var statusProduct:Boolean = true
-    var id_Category = remember { mutableStateOf("") }
 
-    var name_Category = remember { mutableStateOf("Chọn danh mục") }
-
-    // State for image URI
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var isLoading by remember { mutableStateOf(false) }
 
@@ -89,19 +76,37 @@ fun AddProductScreen(
         }
     }
 
-
+//    if (currentUser != null) {
+//        val restaurantId = currentUser.uid
+//        nameRestaurant = currentUser.uid
+//    }
     Column(
         modifier = Modifier.verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         var keyboardOptionsNumber = KeyboardOptions(keyboardType = KeyboardType.Number)
         var keyboardOptions = KeyboardOptions()
-        AddProductTop(
-            mainText = stringResource(id = R.string.contact),
+
+        SettingDetailTop(
             onClick = {
-                mainNavController.navigate("detailMenu")
+                mainNavController.navigate("main")
             }
         )
+
+        Row (
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ){
+            androidx.compose.material.Text(
+                text = "Cửa hàng",
+                fontFamily = Poppins,
+                color = SecondaryColor,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .padding(vertical = 8.dp, horizontal = 10.dp)
+            )
+        }
 
         if (isLoading) {
             Box(
@@ -135,72 +140,46 @@ fun AddProductScreen(
                     contentScale = ContentScale.Crop
                 )
             } else {
-                Text("Chọn ảnh", color = Color.Gray)
+                Text("Chọn logo quán", color = Color.Gray)
             }
         }
 
-        AddProductItem(
-            mainText = stringResource(id = R.string.contact),
-            nameText = "Tên món",
-            value = nameProduct,
-            onValueChange = { nameProduct = it },
-            lable = "Nhập tên món.",
+        SettingDetailItem(
+            nameText = "Tên quán",
+            value = nameRestaurant,
+            onValueChange = { nameRestaurant = it },
+            lable = "Nhập tên quán.",
             keyboardOptions = keyboardOptions,
             modifier = Modifier
                 .padding(bottom = 10.dp)
                 .fillMaxWidth()
         )
 
-        AddProductItem(
-            mainText = stringResource(id = R.string.contact),
-            nameText = "Miêu tả",
-            value = contentProduct,
-            onValueChange = { contentProduct = it },
-            lable = "Nhập miêu tả.",
+        SettingDetailItem(
+            nameText = "Địa chỉ",
+            value = addressRestaurant,
+            onValueChange = { addressRestaurant = it },
+            lable = "Nhập địa chỉ.",
             keyboardOptions = keyboardOptions,
             modifier = Modifier
                 .padding(bottom = 10.dp)
                 .fillMaxWidth()
         )
 
-        AddProductItem(
-            mainText = stringResource(id = R.string.contact),
-            nameText = "Giá",
-            value = moneyProduct,
-            onValueChange = { moneyProduct = it },
-            lable = "Nhập giá tiền.",
+        SettingDetailItem(
+            nameText = "Số Điện Thoại",
+            value = nameRestaurant,
+            onValueChange = { nameRestaurant = it },
+            lable = "Nhập số liên hệ.",
             keyboardOptions = keyboardOptionsNumber,
             modifier = Modifier
                 .padding(bottom = 10.dp)
                 .fillMaxWidth()
         )
-        SelectComponent(
-            modifier = Modifier
-                .padding(10.dp)
-                .fillMaxWidth(),
-            id_Category = id_Category,
-            selectedItem = name_Category,
-            onItemSelected = { newItem -> name_Category.value = newItem }
-        )
+
         Button(
             onClick = {
-                if (nameProduct.isNotEmpty() && contentProduct.isNotEmpty() && moneyProduct.isNotEmpty() && imageUri != null) {
-                    isLoading = true
-                    imageUri?.let { uri ->
-                        uploadImageAndAddProduct(
-                            uri,
-                            nameProduct,
-                            contentProduct,
-                            moneyProduct,
-                            statusProduct,
-                            id_Category.value,
-                            mainNavController,
-                            onUploadComplete = { isLoading = false }
-                        )
-                    }
-                } else {
-                    // Hiển thị thông báo lỗi khi không nhập đủ dữ liệu
-                }
+
             },
             modifier = Modifier
                 .padding(top = 20.dp, start = 50.dp, end = 50.dp)
@@ -208,15 +187,17 @@ fun AddProductScreen(
         ) {
             Text(text = "Xác Nhận", color = Color.White)
         }
+
     }
 }
 
 @ExperimentalMaterialApi
 @Composable
-fun AddProductTop(mainText: String, onClick: () -> Unit) {
+fun SettingDetailTop(onClick: () -> Unit) {
     Card(
         backgroundColor = Color.White,
         modifier = Modifier
+            .padding(bottom = 8.dp)
             .fillMaxWidth()
         ,
         elevation = 0.dp,
@@ -243,7 +224,7 @@ fun AddProductTop(mainText: String, onClick: () -> Unit) {
                     )
                 }
                 androidx.compose.material.Text(
-                    text = "Thêm món mới",
+                    text = "Chỉnh sửa thông tin",
                     style = TextStyle(textAlign = TextAlign.Center),
                     fontFamily = Poppins,
                     color = SecondaryColor,
@@ -260,17 +241,17 @@ fun AddProductTop(mainText: String, onClick: () -> Unit) {
     }
 }
 
+
 @ExperimentalMaterialApi
 @Composable
-fun AddProductItem(
+private fun SettingDetailItem(
     keyboardOptions: KeyboardOptions,
-    mainText: String,
     nameText: String,
     lable: String,
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier
-                   ) {
+) {
     Card(
         backgroundColor = Color.White,
         modifier = Modifier
@@ -297,105 +278,5 @@ fun AddProductItem(
                 modifier = Modifier.fillMaxWidth()
             )
         }
-    }
-}
-
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun SelectComponent(
-    modifier: Modifier = Modifier,
-    id_Category: MutableState<String>,
-    selectedItem: MutableState<String>,
-    onItemSelected: (String) -> Unit
-) {
-    val viewModel: CategoryViewModel = viewModel()
-    val categories = viewModel.categories.collectAsState().value
-
-    var expanded by remember { mutableStateOf(false) }
-
-    Column (
-        modifier = modifier
-    ){
-        androidx.compose.material.Text(
-            text = "Danh mục",
-            fontFamily = Poppins,
-            color = SecondaryColor,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 5.dp)
-        )
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded }
-        ) {
-            TextField(
-                value = selectedItem.value,
-                onValueChange = {},
-                readOnly = true,
-                trailingIcon = {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_arrow_down),
-                        contentDescription = "Dropdown icon",
-                        modifier = Modifier
-//                            .clickable { expanded = !expanded }
-                            .size(24.dp)
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { expanded = true },
-            )
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
-                categories.forEach { category  ->
-                    DropdownMenuItem(
-                        text = { androidx.compose.material3.Text(text = category.nameCategory ) },
-                        onClick = {
-                            onItemSelected(category.nameCategory)
-                            id_Category.value = category.idCategory
-                            expanded = false
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
-
-private fun uploadImageAndAddProduct(
-    imageUri: Uri,
-    nameProduct: String,
-    contentProduct: String,
-    moneyProduct: String,
-    statusProduct: Boolean,
-    id_Category: String,
-    mainNavController: NavHostController,
-    onUploadComplete: () -> Unit
-) {
-    // Upload image to Firebase Storage
-    val storageRef = FirebaseStorage.getInstance().reference
-    val imageRef = storageRef.child("products/${System.currentTimeMillis()}.jpg")
-    val uploadTask = imageRef.putFile(imageUri)
-
-    uploadTask.addOnSuccessListener {
-        imageRef.downloadUrl.addOnSuccessListener { downloadUri ->
-            val imgProduct = downloadUri.toString()
-            addProduct(
-                nameProduct = nameProduct,
-                contentProduct = contentProduct,
-                moneyProduct = moneyProduct,
-                imgProduct = imgProduct,
-                statusProduct = statusProduct,
-                id_Category = id_Category
-            )
-            onUploadComplete()
-            mainNavController.navigate("detailMenu")
-        }.addOnFailureListener {
-            onUploadComplete()
-        }
-    }.addOnFailureListener {
-        onUploadComplete()
     }
 }

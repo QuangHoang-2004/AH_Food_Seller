@@ -68,24 +68,24 @@ import kotlinx.coroutines.launch
 fun OrderScreenMain(
     user: FirebaseUser
 ){
-    val userProfile = remember { mutableStateOf<Restaurant?>(null) }
-    LaunchedEffect(user.uid) {
-        val firestore = FirebaseFirestore.getInstance()
-        val userDocRef = firestore.collection("users").document(user.uid)
-
-        userDocRef.get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    val nameRes = document.getString("nameRestaurant")
-                    val addressRes = document.getString("addressRestaurant")
-                    val email = document.getString("email")
-                    userProfile.value = Restaurant(nameRes, addressRes, user.email ?: "")
-                } else {
-                }
-            }
-            .addOnFailureListener { e ->
-            }
-    }
+//    val userProfile = remember { mutableStateOf<Restaurant?>(null) }
+//    LaunchedEffect(user.uid) {
+//        val firestore = FirebaseFirestore.getInstance()
+//        val userDocRef = firestore.collection("users").document(user.uid)
+//
+//        userDocRef.get()
+//            .addOnSuccessListener { document ->
+//                if (document.exists()) {
+//                    val nameRes = document.getString("nameRestaurant")
+//                    val addressRes = document.getString("addressRestaurant")
+//                    val email = document.getString("email")
+//                    userProfile.value = Restaurant(nameRes, addressRes, user.email ?: "")
+//                } else {
+//                }
+//            }
+//            .addOnFailureListener { e ->
+//            }
+//    }
     val mainNavController = rememberNavController()
 
     NavHost(navController = mainNavController, startDestination = "main"){
@@ -229,28 +229,6 @@ private fun OrderListScreen(mainNavController: NavHostController) {
         }
     }
 }
-
-
-//@OptIn(ExperimentalMaterialApi::class)
-//@Composable
-//private fun OderListScreen(mainNavController: NavHostController) {
-//    val viewModel: OrderViewModel = viewModel()
-//    val orders = viewModel.orders.collectAsState().value
-//
-//    LazyColumn(modifier = Modifier) {
-//        items(orders) { order ->
-////            val productCount = getProductCountForCategory(category.idCategory)
-//            CurrentOrderItem(
-//                mainText = stringResource(id = R.string.contact),
-//                statusText = 5,
-//                nameText = getCustomerName(order.idUser),
-//                onClick = {
-//                    mainNavController.navigate("detailOrder")
-//                }
-//            )
-//        }
-//    }
-//}
 
 @ExperimentalMaterialApi
 @Composable
