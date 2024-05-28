@@ -36,6 +36,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.ah_food_seller.R
+import com.example.ah_food_seller.model.Restaurant
 import com.example.ah_food_seller.ui.theme.LightPrimaryColor
 import com.example.ah_food_seller.ui.theme.Poppins
 import com.example.ah_food_seller.ui.theme.PrimaryColor
@@ -46,18 +47,19 @@ import com.example.ah_food_seller.ui.theme.Shapes
 @Composable
 fun RestaurantScreenMain(
     mainNavController: NavHostController,
-//    resUser: Restaurant
+    resUser: Restaurant
 ) {
     val mainNavControllerM = rememberNavController()
 
     NavHost(navController = mainNavControllerM, startDestination = "main"){
         composable("main"){
             SettingRestaurantScreen(
-                mainNavController = mainNavController
+                mainNavController = mainNavController,
+                mainNavControllerM = mainNavControllerM
             )
         }
         composable("editinformation"){
-            SettingDetailScreen( mainNavControllerM )
+            SettingDetailScreen( mainNavControllerM , resUser)
         }
     }
 }
@@ -65,9 +67,8 @@ fun RestaurantScreenMain(
 @ExperimentalMaterialApi
 @Composable
 fun SettingRestaurantScreen(
-//    mainAuthOrNavController: NavHostController,
+    mainNavControllerM: NavHostController,
     mainNavController: NavHostController,
-//    resUser: Restaurant
 ) {
     Column(
         modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -78,7 +79,9 @@ fun SettingRestaurantScreen(
                 mainNavController.navigate("main")
             }
         )
-        CenterScreen()
+        CenterScreen(
+            mainNavControllerM = mainNavControllerM
+        )
         Button(
             onClick = {
 
@@ -151,7 +154,7 @@ private fun TopScreen(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun CenterScreen(
-
+    mainNavControllerM: NavHostController,
 ) {
     Card(
         backgroundColor = Color.White,
@@ -166,7 +169,9 @@ private fun CenterScreen(
         ) {
             CenterItem(
                 mainText = "Chỉnh sửa thông tin",
-                onClick = {}
+                onClick = {
+                    mainNavControllerM.navigate("editinformation")
+                }
             )
             CenterItem(
                 mainText = "Thay đổi mật khẩu",

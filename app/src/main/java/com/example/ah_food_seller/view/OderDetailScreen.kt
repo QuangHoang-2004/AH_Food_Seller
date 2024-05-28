@@ -6,27 +6,35 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
+import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.ah_food_seller.R
+import com.example.ah_food_seller.controller.getProductName
+import com.example.ah_food_seller.controller.getUserName
+import com.example.ah_food_seller.controller.updateOrderStatus
+import com.example.ah_food_seller.model.Order
 import com.example.ah_food_seller.ui.theme.LightTextColor
 import com.example.ah_food_seller.ui.theme.Poppins
 import com.example.ah_food_seller.ui.theme.PrimaryColor
@@ -34,38 +42,70 @@ import com.example.ah_food_seller.ui.theme.SecondaryColor
 
 @ExperimentalMaterialApi
 @Composable
-fun OrderDetailScreen(mainNavController: NavHostController) {
+fun OrderDetailScreen(mainNavController: NavHostController, orderdetail: Order?) {
+    var userName by remember { mutableStateOf("Loading...") }
+    var newStatus by remember { mutableStateOf(orderdetail?.statusOrder) }
+
+    LaunchedEffect(orderdetail?.userId) {
+        if (orderdetail != null) {
+            getUserName(
+                userId = orderdetail.userId,
+                onSuccess = { name ->
+                    userName = name
+                },
+                onFailure = { exception ->
+                    userName = "Error: ${exception.message}"
+                }
+            )
+        }
+    }
     Column(
         modifier = Modifier
     ) {
 
         OrderDetailTopScreen(
-            mainText = stringResource(id = R.string.contact),
             onClick = {
                 mainNavController.navigate("main")
             }
         )
 
         OrderDetailTop(
-            mainText = "Hùng",
-            idOderText = "GF-123",
-            statusText = 5
+            idOderText = "${orderdetail?.orderId}",
+            statusText = "${orderdetail?.totalQuantity}",
+            name = userName
         )
 
         OrderDetailCenter(
-            address = "Sơn Viên - Duy Nghĩa - Duy Xuyên"
+            address = "${orderdetail?.address}"
         )
 
         OrderDetailBottom(
-            mainText = "Hùng",
-            iphone = "0865387176"
+            mainText = "$userName",
+            orderdetail = orderdetail,
+            newStatus = newStatus,
+            onClick = {
+                if(newStatus == "Chờ xác nhận") {
+                    newStatus = "Đã xác nhận"
+                }else if(newStatus == "Đã xác nhận"){
+                    newStatus = "Đang được giao"
+                }
+                if (orderdetail != null ) {
+                    updateOrderStatus(orderdetail.orderId, newStatus?: "",
+                        onSuccess = {
+                            if(newStatus == "Đang được giao"){
+                                mainNavController.navigate("main")
+                            }
+                        }
+                    )
+                }
+            }
         )
     }
 }
 
 @ExperimentalMaterialApi
 @Composable
-fun OrderDetailTopScreen(mainText: String, onClick: () -> Unit) {
+fun OrderDetailTopScreen(onClick: () -> Unit) {
     Card(
         backgroundColor = Color.White,
         modifier = Modifier
@@ -115,7 +155,7 @@ fun OrderDetailTopScreen(mainText: String, onClick: () -> Unit) {
 
 @ExperimentalMaterialApi
 @Composable
-fun OrderDetailTop(mainText: String, idOderText: String, statusText: Int) {
+fun OrderDetailTop(idOderText: String, statusText: String, name: String) {
     Card(
         backgroundColor = Color.White,
         modifier = Modifier
@@ -137,7 +177,7 @@ fun OrderDetailTop(mainText: String, idOderText: String, statusText: Int) {
                 modifier = Modifier.padding(bottom = 5.dp)
             )
             androidx.compose.material.Text(
-                text = "$statusText món cho Hùng",
+                text = "$statusText món cho $name",
                 fontFamily = Poppins,
                 color = SecondaryColor,
                 fontSize = 16.sp,
@@ -193,12 +233,12 @@ fun OrderDetailCenter(address: String) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 androidx.compose.material.Text(
-//                    text = "Mã đặt hàng",
                     text = "Địa chỉ",
                     fontFamily = Poppins,
                     color = SecondaryColor,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(end = 40.dp)
                 )
                 androidx.compose.material.Text(
                     text = address,
@@ -206,75 +246,82 @@ fun OrderDetailCenter(address: String) {
                     color = SecondaryColor,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(end = 5.dp)
                 )
             }
         }
     }
 }
 
+//@ExperimentalMaterialApi
+//@Composable
+//fun OrderDetailCenterItem(icon: Int, mainText: String, idOrderText: String, statusText: Int, nameText: String, onClick: () -> Unit) {
+//    Card(
+//        backgroundColor = Color.White,
+//        modifier = Modifier
+//            .padding(bottom = 3.dp)
+//            .fillMaxWidth(),
+//        elevation = 0.dp,
+//    ) {
+//        Row(
+//            modifier = Modifier.padding(vertical = 14.dp, horizontal = 14.dp),
+//            verticalAlignment = Alignment.CenterVertically,
+//            horizontalArrangement = Arrangement.SpaceBetween
+//        ) {
+//            Row (
+//                verticalAlignment = Alignment.CenterVertically,
+//            ){
+//                androidx.compose.material.Icon(
+//                    painter = painterResource(id = R.drawable.motorbike_icon),
+//                    contentDescription = "",
+//                    modifier = Modifier.size(35.dp)
+//                )
+//                androidx.compose.material.Text(
+//                    text = nameText,
+//                    fontFamily = Poppins,
+//                    color = SecondaryColor,
+//                    fontSize = 16.sp,
+//                    fontWeight = FontWeight.Bold,
+//                    modifier = Modifier.padding(start = 10.dp)
+//                )
+//            }
+//            Row {
+//                Card(
+//                    onClick = { onClick() },
+//                    modifier = Modifier.padding(end = 10.dp),
+//                    elevation = 0.dp
+//                ) {
+//                    androidx.compose.material.Icon(
+//                        painter = painterResource(id = R.drawable.location_icon),
+//                        contentDescription = "",
+//                        modifier = Modifier.size(25.dp)
+//                    )
+//                }
+//                Card(
+//                    onClick = { onClick() },
+//                    modifier = Modifier,
+//                    elevation = 0.dp
+//                ){
+//                    androidx.compose.material.Icon(
+//                        painter = painterResource(id = R.drawable.phone_icon),
+//                        contentDescription = "",
+//                        modifier = Modifier.size(25.dp)
+//                    )
+//                }
+//            }
+//        }
+//    }
+//}
 @ExperimentalMaterialApi
 @Composable
-fun OrderDetailCenterItem(icon: Int, mainText: String, idOrderText: String, statusText: Int, nameText: String, onClick: () -> Unit) {
-    Card(
-        backgroundColor = Color.White,
-        modifier = Modifier
-            .padding(bottom = 3.dp)
-            .fillMaxWidth(),
-        elevation = 0.dp,
-    ) {
-        Row(
-            modifier = Modifier.padding(vertical = 14.dp, horizontal = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row (
-                verticalAlignment = Alignment.CenterVertically,
-            ){
-                androidx.compose.material.Icon(
-                    painter = painterResource(id = R.drawable.motorbike_icon),
-                    contentDescription = "",
-                    modifier = Modifier.size(35.dp)
-                )
-                androidx.compose.material.Text(
-                    text = nameText,
-                    fontFamily = Poppins,
-                    color = SecondaryColor,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 10.dp)
-                )
-            }
-            Row {
-                Card(
-                    onClick = { onClick() },
-                    modifier = Modifier.padding(end = 10.dp),
-                    elevation = 0.dp
-                ) {
-                    androidx.compose.material.Icon(
-                        painter = painterResource(id = R.drawable.location_icon),
-                        contentDescription = "",
-                        modifier = Modifier.size(25.dp)
-                    )
-                }
-                Card(
-                    onClick = { onClick() },
-                    modifier = Modifier,
-                    elevation = 0.dp
-                ){
-                    androidx.compose.material.Icon(
-                        painter = painterResource(id = R.drawable.phone_icon),
-                        contentDescription = "",
-                        modifier = Modifier.size(25.dp)
-                    )
-                }
-            }
-        }
+fun OrderDetailBottom(mainText: String, orderdetail: Order?, onClick: () -> Unit, newStatus: String?) {
+    var Status by remember { mutableStateOf("") }
+    var boolean: Boolean = false
+    if(newStatus == "Chờ xác nhận") {
+        Status = "Xác nhận"
+        boolean = true
+    }else if(newStatus == "Đã xác nhận"){
+        Status = "Hoàn thành"
     }
-}
-@ExperimentalMaterialApi
-@Composable
-fun OrderDetailBottom(mainText: String, iphone: String) {
     Column(
         modifier = Modifier
     ) {
@@ -289,41 +336,65 @@ fun OrderDetailBottom(mainText: String, iphone: String) {
         )
 
         OrderDetailBottomItemTop(
-            mainText = stringResource(id = R.string.contact),
             nameText = mainText,
-            iphone = iphone,
+            iphone = "${orderdetail?.phone}",
             onClick = {}
         )
 
-        OrderDetailBottomItemCenter(
-            mainText = stringResource(id = R.string.contact),
-            statusText = 1,
-            foodnameText = "Cơm hến",
-            moneyText = "96.000",
-            onClick = {}
-        )
+        LazyColumn {
+            if (orderdetail != null) {
+                items(orderdetail.items) { item ->
+                    var productName by remember { mutableStateOf("Loading...") }
 
-        OrderDetailBottomItemCenter(
-            mainText = stringResource(id = R.string.contact),
-            statusText = 2,
-            foodnameText = "Bún bò huế",
-            moneyText = "65.000",
-            onClick = {}
-        )
+                    LaunchedEffect(item.productId) {
+                        getProductName(
+                            productId = item.productId,
+                            onSuccess = { name ->
+                                productName = name
+                            },
+                            onFailure = { exception ->
+                                productName = "Error: ${exception.message}"
+                            }
+                        )
+                    }
+                    OrderDetailBottomItemCenter(
+                        statusText = item.quantity,
+                        foodnameText = "$productName",
+                        moneyText = "${item.price}",
+                    )
+                }
+                item {
+                    Column {
+                        Button(
+                            onClick = { onClick() },
+                            modifier = Modifier
+                                .padding(top = 20.dp, start = 50.dp, end = 50.dp)
+                                .fillMaxWidth()
+                        ) {
+                            Text(text = "$Status", color = Color.White)
+                        }
+                        if(boolean) {
+                            Button(
+                                onClick = {
 
-        OrderDetailBottomItemCenter(
-            mainText = stringResource(id = R.string.contact),
-            statusText = 1,
-            foodnameText = "Bánh canh nam phổ",
-            moneyText = "58.000",
-            onClick = {}
-        )
+                                },
+                                modifier = Modifier
+                                    .padding(start = 50.dp, end = 50.dp)
+                                    .fillMaxWidth()
+                            ) {
+                                Text(text = "Hủy đơn", color = Color.White)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
 @ExperimentalMaterialApi
 @Composable
-fun OrderDetailBottomItemTop(mainText: String, iphone: String, nameText: String, onClick: () -> Unit) {
+fun OrderDetailBottomItemTop(iphone: String, nameText: String, onClick: () -> Unit) {
     Card(
         backgroundColor = Color.White,
         modifier = Modifier
@@ -333,7 +404,9 @@ fun OrderDetailBottomItemTop(mainText: String, iphone: String, nameText: String,
     ) {
         Column {
             Row(
-                modifier = Modifier.padding(vertical = 14.dp, horizontal = 14.dp).fillMaxWidth(),
+                modifier = Modifier
+                    .padding(vertical = 14.dp, horizontal = 14.dp)
+                    .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -368,14 +441,14 @@ fun OrderDetailBottomItemTop(mainText: String, iphone: String, nameText: String,
                 }
             }
 
-            androidx.compose.material.Text(
-                text = "Tin nhắn từ khách hàng",
-                fontFamily = Poppins,
-                color = LightTextColor,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 14.dp).fillMaxWidth()
-            )
+//            androidx.compose.material.Text(
+//                text = "Tin nhắn từ khách hàng",
+//                fontFamily = Poppins,
+//                color = LightTextColor,
+//                fontSize = 14.sp,
+//                fontWeight = FontWeight.Bold,
+//                modifier = Modifier.padding(horizontal = 14.dp).fillMaxWidth()
+//            )
 
         }
     }
@@ -383,9 +456,8 @@ fun OrderDetailBottomItemTop(mainText: String, iphone: String, nameText: String,
 
 @ExperimentalMaterialApi
 @Composable
-fun OrderDetailBottomItemCenter(mainText: String, statusText: Int, moneyText: String, foodnameText: String, onClick: () -> Unit) {
+fun OrderDetailBottomItemCenter(statusText: Int, moneyText: String, foodnameText: String) {
     Card(
-        onClick = { onClick() },
         backgroundColor = Color.White,
         modifier = Modifier
             .padding(bottom = 5.dp)

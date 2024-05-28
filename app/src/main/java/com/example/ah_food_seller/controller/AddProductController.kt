@@ -110,7 +110,6 @@ fun updateProduct(
                         }
 
                     if (imgProduct != currentImgProduct && imgProduct != null) {
-                        // Nếu khác, xóa ảnh cũ trước khi cập nhật với ảnh mới
                         val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(currentImgProduct)
                         storageRef.delete()
                     }

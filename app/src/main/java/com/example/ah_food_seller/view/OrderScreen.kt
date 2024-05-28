@@ -1,5 +1,7 @@
 package com.example.ah_food_seller.view
 
+import android.app.DatePickerDialog
+import android.widget.DatePicker
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -18,7 +20,9 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
+import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -27,7 +31,7 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -43,25 +48,26 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.ah_food_seller.R
-import com.example.ah_food_seller.controller.CategoryViewModel
-import com.example.ah_food_seller.controller.OrderViewModel
-import com.example.ah_food_seller.model.Restaurant
+import com.example.ah_food_seller.controller.getUserName
 import com.example.ah_food_seller.ui.theme.LightPrimaryColor
 import com.example.ah_food_seller.ui.theme.LightTextColor
 import com.example.ah_food_seller.ui.theme.Poppins
 import com.example.ah_food_seller.ui.theme.PrimaryColor
 import com.example.ah_food_seller.ui.theme.Purple700
 import com.example.ah_food_seller.ui.theme.SecondaryColor
+import com.example.ah_food_seller.model.Order
+import com.example.ah_food_seller.controller.listenForOrderUpdates
+import com.example.ah_food_seller.viewmodel.OrderItem
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -86,14 +92,15 @@ fun OrderScreenMain(
 //            .addOnFailureListener { e ->
 //            }
 //    }
+    val orderdetail = remember { mutableStateOf<Order?>(null) }
     val mainNavController = rememberNavController()
 
     NavHost(navController = mainNavController, startDestination = "main"){
         composable("main"){
-            OrderScreen(mainNavController = mainNavController)
+            OrderScreen(mainNavController = mainNavController, orderdetail = orderdetail)
         }
         composable("detailOrder"){
-            OrderDetailScreen(mainNavController = mainNavController)
+            OrderDetailScreen(mainNavController = mainNavController, orderdetail = orderdetail.value)
         }
     }
 }
@@ -101,12 +108,19 @@ fun OrderScreenMain(
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun OrderScreen(
-   // viewModel: OrderViewModel = viewModel(),
-    navController: NavHostController = rememberNavController(),
+    orderdetail: MutableState<Order?>,
+//    navController: NavHostController = rememberNavController(),
     mainNavController: NavHostController
 ) {
-//    val backStackEntry by navController.currentBackStackEntryAsState()
+    var orders by remember { mutableStateOf<List<Order>>(emptyList()) }
 
+    LaunchedEffect(Unit) {
+        listenForOrderUpdates(
+            onOrderUpdated = { updatedOrders ->
+                orders = updatedOrders
+            }
+        )
+    }
     Scaffold(
         topBar = {
             Box(
@@ -183,7 +197,7 @@ fun OrderScreen(
                         .fillMaxSize()
                 ) {
                     when(page){
-                        0 -> CurrentOrder(mainNavController = mainNavController)
+                        0 -> CurrentOrder(mainNavController = mainNavController, orders = orders, orderdetail = orderdetail)
                         1 -> OrderHistory()
                     }
 
@@ -196,48 +210,56 @@ fun OrderScreen(
 
 @ExperimentalMaterialApi
 @Composable
-fun CurrentOrder(mainNavController: NavHostController) {
+fun CurrentOrder(mainNavController: NavHostController, orders: List<Order>, orderdetail: MutableState<Order?>) {
     Column(
         modifier = Modifier
     ) {
-        OrderListScreen(mainNavController = mainNavController)
+        OrderListScreen(mainNavController = mainNavController, orders = orders, orderdetail = orderdetail)
     }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun OrderListScreen(mainNavController: NavHostController) {
-    val viewModel: OrderViewModel = viewModel()
-    val orders = viewModel.orders.collectAsState().value
-
-    LazyColumn(modifier = Modifier) {
+private fun OrderListScreen(mainNavController: NavHostController, orders: List<Order>, orderdetail: MutableState<Order?>) {
+    LazyColumn {
         items(orders) { order ->
-            var customerName by remember { mutableStateOf<String?>(null) }
-
-            LaunchedEffect(order.idUser) {
-                customerName = viewModel.getCustomerName(order.idUser)
+            if(order.statusOrder == "Chờ xác nhận" || order.statusOrder == "Đã xác nhận") {
+                CurrentOrderItem(
+                    order = order,
+                    onClick = {
+                        orderdetail.value = order
+                        mainNavController.navigate("detailOrder")
+                    }
+                )
+                Divider(
+                    Modifier.padding(horizontal = 12.dp),
+                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.2f)
+                )
             }
-
-            CurrentOrderItem(
-                mainText = customerName ?: "Loading...",
-                statusText = 5,
-                nameText = customerName ?: "Loading...",
-                onClick = {
-                    mainNavController.navigate("detailOrder")
-                }
-            )
         }
     }
 }
 
 @ExperimentalMaterialApi
 @Composable
-fun CurrentOrderItem(mainText: String, statusText: Int, nameText: String, onClick: () -> Unit) {
+fun CurrentOrderItem(order: Order, onClick: () -> Unit) {
+    var userName by remember { mutableStateOf("Loading...") }
+
+    LaunchedEffect(order.userId) {
+        getUserName(
+            userId = order.userId,
+            onSuccess = { name ->
+                userName = name
+            },
+            onFailure = { exception ->
+                userName = "Error: ${exception.message}"
+            }
+        )
+    }
     Card(
         onClick = { onClick() },
         backgroundColor = Color.White,
         modifier = Modifier
-            .padding(bottom = 8.dp)
             .fillMaxWidth(),
         elevation = 0.dp,
     ) {
@@ -252,7 +274,7 @@ fun CurrentOrderItem(mainText: String, statusText: Int, nameText: String, onClic
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     androidx.compose.material.Text(
-                        text = mainText,
+                        text = userName,
                         fontFamily = Poppins,
                         color = SecondaryColor,
                         fontSize = 16.sp,
@@ -262,14 +284,14 @@ fun CurrentOrderItem(mainText: String, statusText: Int, nameText: String, onClic
                         modifier = Modifier.padding(top = 5.dp)
                     ){
                         androidx.compose.material.Text(
-                            text = "$statusText món ",
+                            text = "${order.totalQuantity} món ",
                             fontFamily = Poppins,
                             color = SecondaryColor,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                         )
                         androidx.compose.material.Text(
-                            text = "cho $nameText",
+                            text = "cho $userName",
                             fontFamily = Poppins,
                             color = SecondaryColor,
                             fontSize = 13.sp,
@@ -305,14 +327,15 @@ fun CurrentOrderItem(mainText: String, statusText: Int, nameText: String, onClic
 @ExperimentalMaterialApi
 @Composable
 fun OrderHistory() {
+    val calendar = Calendar.getInstance()
+    val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale("vi", "VN"))
+    var selectedDate by remember { mutableStateOf(dateFormat.format(calendar.time)) }
+
     Box(Modifier.verticalScroll(rememberScrollState())) {
         Column {
-            OrderHistoryTop(
-                icon = R.drawable.ic_launcher_background,
-                mainText = stringResource(id = R.string.contact),
-                dateText = "7 tháng 2, 2024",
-                onClick = {}
-            )
+            OrderHistoryTop(dateText = selectedDate) { newDate ->
+                selectedDate = newDate
+            }
             OrderHistoryCenter()
             OrderHistoryBottom()
         }
@@ -321,21 +344,38 @@ fun OrderHistory() {
 
 @ExperimentalMaterialApi
 @Composable
-fun OrderHistoryTop(icon: Int, mainText: String, dateText: String, onClick: () -> Unit) {
+fun OrderHistoryTop(
+    dateText: String,
+    onDateSelected: (String) -> Unit
+) {
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
+            calendar.set(year, month, dayOfMonth)
+            val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale("vi", "VN"))
+            onDateSelected(dateFormat.format(calendar.time))
+        },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
+    )
+
     Card(
-        onClick = { onClick() },
+        onClick = { datePickerDialog.show() },
         backgroundColor = Color.White,
         modifier = Modifier
             .padding(top = 8.dp)
             .fillMaxWidth(),
         elevation = 0.dp,
     ) {
-        Column (
+        Column(
             modifier = Modifier
                 .padding(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
-
-        ){
+        ) {
             androidx.compose.material.Text(
                 text = "Chọn ngày",
                 fontFamily = Poppins,
@@ -362,7 +402,7 @@ fun OrderHistoryTop(icon: Int, mainText: String, dateText: String, onClick: () -
                                 fontSize = 14.sp,
                             )
                             androidx.compose.material.Text(
-                                text = "$dateText",
+                                text = dateText,
                                 fontFamily = Poppins,
                                 color = SecondaryColor,
                                 fontSize = 14.sp,
@@ -378,7 +418,6 @@ fun OrderHistoryTop(icon: Int, mainText: String, dateText: String, onClick: () -
                         .padding(start = 5.dp)
                         .size(16.dp)
                 )
-
             }
         }
     }
@@ -528,28 +567,33 @@ fun OrderHistoryBottom() {
                 .padding(vertical = 8.dp, horizontal = 10.dp)
         )
         OrderHistoryBottomItem(
-            icon = R.drawable.ic_launcher_background,
             mainText = stringResource(id = R.string.contact),
             dateText = "11:30 PM",
             onClick = {}
         )
+        Divider(
+            Modifier.padding(horizontal = 12.dp),
+            color = MaterialTheme.colors.onSurface.copy(alpha = 0.2f)
+        )
         OrderHistoryBottomItem(
-            icon = R.drawable.ic_launcher_background,
             mainText = stringResource(id = R.string.contact),
             dateText = "10:30 PM",
             onClick = {}
+        )
+        Divider(
+            Modifier.padding(horizontal = 12.dp),
+            color = MaterialTheme.colors.onSurface.copy(alpha = 0.2f)
         )
     }
 }
 
 @ExperimentalMaterialApi
 @Composable
-fun OrderHistoryBottomItem(icon: Int, mainText: String, dateText: String, onClick: () -> Unit) {
+fun OrderHistoryBottomItem(mainText: String, dateText: String, onClick: () -> Unit) {
     Card(
         onClick = { onClick() },
         backgroundColor = Color.White,
         modifier = Modifier
-            .padding(bottom = 8.dp)
             .fillMaxWidth(),
         elevation = 0.dp,
     ) {

@@ -128,102 +128,103 @@ fun EditProductScreen(
             ) {
                 CircularProgressIndicator()
             }
-        }
+        }else {
 
-        Box(
-            modifier = Modifier
-                .padding(10.dp)
-                .padding(top = 18.dp)
-                .size(200.dp)
-                .background(Color.LightGray, shape = RoundedCornerShape(10.dp))
-                .border(2.dp, Color.Gray, RoundedCornerShape(10.dp))
-                .clip(RoundedCornerShape(10.dp))
-                .clickable { imageLauncher.launch("image/*") },
-            contentAlignment = Alignment.Center
-        ) {
-            if (imgProduct.isNotEmpty()) {
-                Image(
-                    painter = rememberImagePainter(imgProduct),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(10.dp)),  // Ensure image is clipped to rounded corners
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Text("Chọn ảnh", color = Color.Gray)
-            }
-        }
-
-        EditProductItem(
-            nameText = "Tên món",
-            value = nameProduct,
-            onValueChange = { nameProduct = it },
-            lable = "Nhập tên món.",
-            keyboardOptions = keyboardOptions,
-        )
-
-        EditProductItem(
-            nameText = "Miêu tả",
-            value = contentProduct,
-            onValueChange = { contentProduct = it },
-            lable = "Nhập miêu tả.",
-            keyboardOptions = keyboardOptions,
-        )
-
-        EditProductItem(
-            nameText = "Giá",
-            value = moneyProduct,
-            onValueChange = { moneyProduct = it },
-            lable = "Nhập giá tiền.",
-            keyboardOptions = keyboardOptionsNumber,
-        )
-        SelectComponentEdit(
-            modifier = Modifier
-            .padding(10.dp)
-            .fillMaxWidth(),
-            id_Category = id_Category,
-            selectedItem = name_Category,
-            onItemSelected = { newItem -> name_Category.value = newItem }
-        )
-
-        Button(
-            onClick = {
-                if (nameProduct.isNotEmpty() && contentProduct.isNotEmpty() && moneyProduct.isNotEmpty()) {
-                    isLoading = true
-                    if (imageUri != null) {
-                        uploadImageAndProduct(
-                            imageUri,
-                            product.idProduct,
-                            nameProduct,
-                            contentProduct,
-                            moneyProduct,
-                            statusProduct,
-                            id_Category.value,
-                            mainNavController,
-                            onUploadComplete = { isLoading = false }
-                        )
-                    } else {
-                        uploadImageAndProduct(
-                            null, // Truyền null vào khi không chọn ảnh
-                            product.idProduct,
-                            nameProduct,
-                            contentProduct,
-                            moneyProduct,
-                            statusProduct,
-                            id_Category.value,
-                            mainNavController,
-                            onUploadComplete = { isLoading = false }
-                        )
-                    }
+            Box(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .padding(top = 18.dp)
+                    .size(200.dp)
+                    .background(Color.LightGray, shape = RoundedCornerShape(10.dp))
+                    .border(2.dp, Color.Gray, RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable { imageLauncher.launch("image/*") },
+                contentAlignment = Alignment.Center
+            ) {
+                if (imgProduct.isNotEmpty()) {
+                    Image(
+                        painter = rememberImagePainter(imgProduct),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(10.dp)),  // Ensure image is clipped to rounded corners
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Text("Chọn ảnh", color = Color.Gray)
                 }
+            }
 
-            },
-            modifier = Modifier
-                .padding(top = 20.dp, start = 50.dp, end = 50.dp)
-                .fillMaxWidth()
-        ) {
-            Text(text = "Xác Nhận", color = Color.White)
+            EditProductItem(
+                nameText = "Tên món",
+                value = nameProduct,
+                onValueChange = { nameProduct = it },
+                lable = "Nhập tên món.",
+                keyboardOptions = keyboardOptions,
+            )
+
+            EditProductItem(
+                nameText = "Miêu tả",
+                value = contentProduct,
+                onValueChange = { contentProduct = it },
+                lable = "Nhập miêu tả.",
+                keyboardOptions = keyboardOptions,
+            )
+
+            EditProductItem(
+                nameText = "Giá",
+                value = moneyProduct,
+                onValueChange = { moneyProduct = it },
+                lable = "Nhập giá tiền.",
+                keyboardOptions = keyboardOptionsNumber,
+            )
+            SelectComponentEdit(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxWidth(),
+                id_Category = id_Category,
+                selectedItem = name_Category,
+                onItemSelected = { newItem -> name_Category.value = newItem }
+            )
+
+            Button(
+                onClick = {
+                    if (nameProduct.isNotEmpty() && contentProduct.isNotEmpty() && moneyProduct.isNotEmpty()) {
+                        isLoading = true
+                        if (imageUri != null) {
+                            uploadImageAndProduct(
+                                imageUri,
+                                product.idProduct,
+                                nameProduct,
+                                contentProduct,
+                                moneyProduct,
+                                statusProduct,
+                                id_Category.value,
+                                mainNavController,
+                                onUploadComplete = { isLoading = false }
+                            )
+                        } else {
+                            uploadImageAndProduct(
+                                null, // Truyền null vào khi không chọn ảnh
+                                product.idProduct,
+                                nameProduct,
+                                contentProduct,
+                                moneyProduct,
+                                statusProduct,
+                                id_Category.value,
+                                mainNavController,
+                                onUploadComplete = { isLoading = false }
+                            )
+                        }
+                    }
+
+                },
+                modifier = Modifier
+                    .padding(top = 20.dp, start = 50.dp, end = 50.dp)
+                    .fillMaxWidth()
+            ) {
+                Text(text = "Xác Nhận", color = Color.White)
+            }
         }
     }
 }

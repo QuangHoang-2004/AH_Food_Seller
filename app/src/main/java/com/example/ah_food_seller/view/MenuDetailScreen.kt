@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Card
+import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -127,6 +129,10 @@ private fun CategoryListScreen(mainNavController: NavHostController) {
                 mainNavControllerM = mainNavController,
                 statusText = 5, // Adjust as per your logic
                 category = category
+            )
+            Divider(
+                Modifier.padding(horizontal = 12.dp),
+                color = MaterialTheme.colors.onSurface.copy(alpha = 0.2f)
             )
         }
     }

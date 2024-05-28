@@ -24,9 +24,11 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
+import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -202,7 +204,6 @@ fun MainMenu(mainNavController: NavHostController) {
     ) {
 
         MainMenuTop(
-            mainText = stringResource(id = R.string.contact),
             onClick = {
                 mainNavController.navigate("detailMenu")
             }
@@ -270,13 +271,17 @@ private fun CategoryListScreen() {
                 nameText = category.nameCategory,
                 id_Category = category.idCategory
             )
+            Divider(
+                Modifier.padding(horizontal = 12.dp),
+                color = MaterialTheme.colors.onSurface.copy(alpha = 0.2f)
+            )
         }
     }
 }
 
 @ExperimentalMaterialApi
 @Composable
-fun MainMenuTop(mainText: String, onClick: () -> Unit) {
+fun MainMenuTop(onClick: () -> Unit) {
     Card(
         onClick = { onClick() },
         backgroundColor = Color.White,
@@ -366,7 +371,6 @@ private fun MainMenuItem(countText: Int, nameText: String, id_Category: String) 
     Card(
         backgroundColor = Color.White,
         modifier = Modifier
-
             .fillMaxWidth(),
         elevation = 0.dp,
     ) {

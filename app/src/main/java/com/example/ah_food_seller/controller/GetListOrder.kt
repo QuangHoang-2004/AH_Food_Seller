@@ -1,70 +1,84 @@
 package com.example.ah_food_seller.controller
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import java.lang.Exception
-import com.example.ah_food_seller.model.User
+import com.example.ah_food_seller.model.Order
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ListenerRegistration
 
 private val auth = FirebaseAuth.getInstance()
 private val currentUser = auth.currentUser
 
-data class Order(
-    val idUser: String = "",
-    val sdt: String = "",
-    val statusOder: String = "",
-    val idOrder: String = "",
-)
-class OrderViewModel : ViewModel() {
-    private val _orders = MutableStateFlow<List<Order>>(emptyList())
-    val orders: StateFlow<List<Order>> = _orders
-    private val firestore = FirebaseFirestore.getInstance()
-    private val auth = FirebaseAuth.getInstance()
-    private val currentUser = auth.currentUser
+val db = FirebaseFirestore.getInstance()
+var listenerRegistration: ListenerRegistration? = null
 
-    init {
-        fetchOrders()
-    }
-
-    private fun fetchOrders() {
-        currentUser?.let { user ->
-            firestore.collection("orders")
-                .whereEqualTo("id_Restaurant", user.uid)
-                .addSnapshotListener { snapshot, e ->
-                    if (e != null) {
-                        // Handle error
-                        return@addSnapshotListener
-                    }
-
-                    val orderList = snapshot?.documents?.map { document ->
-                        document.toObject(Order::class.java)!!
-                    } ?: emptyList()
-
-                    _orders.value = orderList
-                }
-        }
-    }
-
-    suspend fun getCustomerName(idUser: String): String? {
-        return try {
-            val documentSnapshot = firestore.collection("users")
-                .document(idUser)
-                .get()
-                .await()
-
-            if (documentSnapshot.exists()) {
-                val user = documentSnapshot.toObject(User::class.java)
-                listOfNotNull(user?.firstName, user?.lastName).joinToString(" ")
-            } else {
-                null
+fun listenForOrderUpdates(
+    onOrderUpdated: (List<Order>) -> Unit,
+) {
+    val restaurantId = currentUser?.uid
+    listenerRegistration = db.collection("orders")
+        .whereEqualTo("restaurantId", restaurantId)
+        .addSnapshotListener { snapshots, e ->
+            if (e != null) {
+                return@addSnapshotListener
             }
-        } catch (e: Exception) {
-            null
+
+            if (snapshots != null) {
+                val orders = mutableListOf<Order>()
+                for (doc in snapshots.documents) {
+                    val order = doc.toObject(Order::class.java)?.copy(orderId = doc.id)
+                    if (order != null) {
+                        order.totalQuantity = order.items.sumOf { it.quantity }
+                        orders.add(order)
+                    }
+                }
+                onOrderUpdated(orders)
+            }
         }
-    }
+}
+
+// Dừng lắng nghe khi không cần thiết
+fun removeOrderListener() {
+    listenerRegistration?.remove()
+}
+
+fun getUserName(userId: String, onSuccess: (String) -> Unit, onFailure: (Exception) -> Unit) {
+    val db = FirebaseFirestore.getInstance()
+    val userRef = db.collection("users").document(userId)
+
+    userRef.get()
+        .addOnSuccessListener { document ->
+            if (document != null && document.exists()) {
+                val firstName = document.getString("firstName") ?: ""
+                val lastName = document.getString("lastName") ?: ""
+                val userName = "$lastName $firstName".trim()
+                onSuccess(userName)
+            } else {
+                onFailure(Exception("User not found"))
+            }
+        }
+}
+
+fun getProductName(productId: String, onSuccess: (String) -> Unit, onFailure: (Exception) -> Unit) {
+    val db = FirebaseFirestore.getInstance()
+    val userRef = db.collection("products").document(productId)
+
+    userRef.get()
+        .addOnSuccessListener { document ->
+            if (document != null && document.exists()) {
+                val productName = document.getString("nameProduct") ?: ""
+                onSuccess(productName)
+            } else {
+                onFailure(Exception("Product not found"))
+            }
+        }
+}
+
+fun updateOrderStatus(orderId: String, newStatus: String, onSuccess: () -> Unit) {
+    val db = FirebaseFirestore.getInstance()
+    val orderRef = db.collection("orders").document(orderId)
+
+    orderRef.update("statusOrder", newStatus)
+        .addOnSuccessListener {
+            onSuccess()
+        }
 }

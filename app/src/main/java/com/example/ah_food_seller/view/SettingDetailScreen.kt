@@ -26,6 +26,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,9 +47,15 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.rememberImagePainter
 import com.example.ah_food_seller.R
+import com.example.ah_food_seller.controller.getRestaurantById
+import com.example.ah_food_seller.controller.updateProduct
+import com.example.ah_food_seller.controller.updateRestaurant
+import com.example.ah_food_seller.model.Restaurant
 import com.example.ah_food_seller.ui.theme.Poppins
 import com.example.ah_food_seller.ui.theme.PrimaryColor
 import com.example.ah_food_seller.ui.theme.SecondaryColor
+import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.flow.firstOrNull
 
 
 //private val auth = FirebaseAuth.getInstance()
@@ -56,11 +63,25 @@ import com.example.ah_food_seller.ui.theme.SecondaryColor
 @ExperimentalMaterialApi
 @Composable
 fun SettingDetailScreen(
-    mainNavController: NavHostController
+    mainNavControllerM: NavHostController,
+    resUser: Restaurant
 ) {
-    var nameRestaurant by remember { mutableStateOf("") }
-    var addressRestaurant by remember { mutableStateOf("") }
-    var imgProduct by remember { mutableStateOf("") }
+    val restaurant by remember { mutableStateOf(resUser) }
+    val restaurantId = restaurant.id.toString()
+
+    var restaurantMain by remember { mutableStateOf<Restaurant?>(null) }
+    val nameRestaurant = remember { mutableStateOf("") }
+    val addressRestaurant = remember { mutableStateOf("") }
+    val sdtRestaurant = remember { mutableStateOf("") }
+    val imgRestaurant = remember { mutableStateOf("") }
+    LaunchedEffect(restaurantId) {
+        val restaurant = getRestaurantById(restaurantId).firstOrNull()
+        restaurantMain = restaurant
+        nameRestaurant.value = restaurant?.nameRestaurant ?: ""
+        addressRestaurant.value = restaurant?.addressRestaurant ?: ""
+        imgRestaurant.value = restaurant?.imageUrl ?: ""
+        sdtRestaurant.value = restaurant?.sdtRestaurant ?: "Chưa có thông tin liên lạc!"
+    }
 
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var isLoading by remember { mutableStateOf(false) }
@@ -72,16 +93,13 @@ fun SettingDetailScreen(
         imageUri = uri
         uri?.let {
             // Handle selected image URI if needed
-            imgProduct = it.toString()
+            imgRestaurant.value = it.toString()
         }
     }
-
-//    if (currentUser != null) {
-//        val restaurantId = currentUser.uid
-//        nameRestaurant = currentUser.uid
-//    }
     Column(
-        modifier = Modifier.verticalScroll(rememberScrollState()),
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()), // Đảm bảo cột có thể cuộn dọc
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         var keyboardOptionsNumber = KeyboardOptions(keyboardType = KeyboardType.Number)
@@ -89,25 +107,9 @@ fun SettingDetailScreen(
 
         SettingDetailTop(
             onClick = {
-                mainNavController.navigate("main")
+                mainNavControllerM.navigate("main")
             }
         )
-
-        Row (
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ){
-            androidx.compose.material.Text(
-                text = "Cửa hàng",
-                fontFamily = Poppins,
-                color = SecondaryColor,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .padding(vertical = 8.dp, horizontal = 10.dp)
-            )
-        }
-
         if (isLoading) {
             Box(
                 modifier = Modifier
@@ -117,77 +119,103 @@ fun SettingDetailScreen(
             ) {
                 CircularProgressIndicator()
             }
-        }
-
-        Box(
-            modifier = Modifier
-                .padding(10.dp)
-                .padding(top = 18.dp)
-                .size(200.dp)
-                .background(Color.LightGray, shape = RoundedCornerShape(10.dp))
-                .border(2.dp, Color.Gray, RoundedCornerShape(10.dp))
-                .clip(RoundedCornerShape(10.dp))
-                .clickable { imageLauncher.launch("image/*") },
-            contentAlignment = Alignment.Center
-        ) {
-            if (imageUri != null) {
-                Image(
-                    painter = rememberImagePainter(imageUri),
-                    contentDescription = null,
+        }else{
+            Row (
+                modifier = Modifier.padding(top = 8.dp).fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ){
+                androidx.compose.material.Text(
+                    text = "Cửa hàng",
+                    fontFamily = Poppins,
+                    color = SecondaryColor,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(10.dp)),  // Ensure image is clipped to rounded corners
-                    contentScale = ContentScale.Crop
+                        .padding(vertical = 8.dp, horizontal = 10.dp)
                 )
-            } else {
-                Text("Chọn logo quán", color = Color.Gray)
+            }
+
+            Box(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .padding(top = 18.dp)
+                    .size(200.dp)
+                    .background(Color.LightGray, shape = RoundedCornerShape(10.dp))
+                    .border(2.dp, Color.Gray, RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable { imageLauncher.launch("image/*") },
+                contentAlignment = Alignment.Center
+            ) {
+                if (imgRestaurant.value != "") {
+                    Image(
+                        painter = rememberImagePainter(imgRestaurant.value),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(10.dp)),  // Ensure image is clipped to rounded corners
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Text("Chọn logo quán", color = Color.Gray)
+                }
+            }
+
+            SettingDetailItem(
+                nameText = "Tên quán",
+                value = nameRestaurant.value,
+                onValueChange = { nameRestaurant.value = it },
+                lable = "Nhập tên quán.",
+                keyboardOptions = keyboardOptions,
+            )
+
+            SettingDetailItem(
+                nameText = "Địa chỉ",
+                value = addressRestaurant.value,
+                onValueChange = { addressRestaurant.value = it },
+                lable = "Nhập địa chỉ.",
+                keyboardOptions = keyboardOptions,
+            )
+
+            SettingDetailItem(
+                nameText = "Số Điện Thoại",
+                value = sdtRestaurant.value,
+                onValueChange = { sdtRestaurant.value = it },
+                lable = "Nhập số liên hệ.",
+                keyboardOptions = keyboardOptionsNumber,
+            )
+
+            Button(
+                onClick = {
+                    if (nameRestaurant.value.isNotEmpty() && addressRestaurant.value.isNotEmpty() && sdtRestaurant.value.isNotEmpty()) {
+                        isLoading = true
+                        if (imageUri != null) {
+                            uploadImageAndRestaurant(
+                                imageUri,
+                                nameRestaurant.value,
+                                addressRestaurant.value,
+                                sdtRestaurant.value,
+                                mainNavControllerM,
+                                onUploadComplete = { isLoading = false }
+                            )
+                        } else {
+                            uploadImageAndRestaurant(
+                                null,
+                                nameRestaurant.value,
+                                addressRestaurant.value,
+                                sdtRestaurant.value,
+                                mainNavControllerM,
+                                onUploadComplete = { isLoading = false }
+                            )
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .padding(top = 20.dp, start = 50.dp, end = 50.dp)
+                    .fillMaxWidth()
+            ) {
+                Text(text = "Xác Nhận", color = Color.White)
             }
         }
-
-        SettingDetailItem(
-            nameText = "Tên quán",
-            value = nameRestaurant,
-            onValueChange = { nameRestaurant = it },
-            lable = "Nhập tên quán.",
-            keyboardOptions = keyboardOptions,
-            modifier = Modifier
-                .padding(bottom = 10.dp)
-                .fillMaxWidth()
-        )
-
-        SettingDetailItem(
-            nameText = "Địa chỉ",
-            value = addressRestaurant,
-            onValueChange = { addressRestaurant = it },
-            lable = "Nhập địa chỉ.",
-            keyboardOptions = keyboardOptions,
-            modifier = Modifier
-                .padding(bottom = 10.dp)
-                .fillMaxWidth()
-        )
-
-        SettingDetailItem(
-            nameText = "Số Điện Thoại",
-            value = nameRestaurant,
-            onValueChange = { nameRestaurant = it },
-            lable = "Nhập số liên hệ.",
-            keyboardOptions = keyboardOptionsNumber,
-            modifier = Modifier
-                .padding(bottom = 10.dp)
-                .fillMaxWidth()
-        )
-
-        Button(
-            onClick = {
-
-            },
-            modifier = Modifier
-                .padding(top = 20.dp, start = 50.dp, end = 50.dp)
-                .fillMaxWidth()
-        ) {
-            Text(text = "Xác Nhận", color = Color.White)
-        }
-
     }
 }
 
@@ -197,7 +225,6 @@ fun SettingDetailTop(onClick: () -> Unit) {
     Card(
         backgroundColor = Color.White,
         modifier = Modifier
-            .padding(bottom = 8.dp)
             .fillMaxWidth()
         ,
         elevation = 0.dp,
@@ -250,7 +277,6 @@ private fun SettingDetailItem(
     lable: String,
     value: String,
     onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier
 ) {
     Card(
         backgroundColor = Color.White,
@@ -278,5 +304,47 @@ private fun SettingDetailItem(
                 modifier = Modifier.fillMaxWidth()
             )
         }
+    }
+}
+
+private fun uploadImageAndRestaurant(
+    imageUri: Uri?,
+    nameRestaurant: String,
+    addressRestaurant: String,
+    sdtRestaurant: String,
+    mainNavControllerM: NavHostController,
+    onUploadComplete: () -> Unit
+) {
+    if (imageUri != null) {
+        val storageRef = FirebaseStorage.getInstance().reference
+        val imageRef = storageRef.child("restaurants/${System.currentTimeMillis()}.jpg")
+        val uploadTask = imageRef.putFile(imageUri)
+
+        uploadTask.addOnSuccessListener {
+            imageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                val imgProductNew = downloadUri.toString()
+                updateRestaurant(
+                    nameRestaurant = nameRestaurant,
+                    addressRestaurant = addressRestaurant,
+                    sdtRestaurant = sdtRestaurant,
+                    imgRestaurant = imgProductNew,
+                )
+                onUploadComplete()
+                mainNavControllerM.navigate("main")
+            }.addOnFailureListener {
+                onUploadComplete()
+            }
+        }.addOnFailureListener {
+            onUploadComplete()
+        }
+    } else {
+        updateRestaurant(
+            nameRestaurant = nameRestaurant,
+            addressRestaurant = addressRestaurant,
+            sdtRestaurant = sdtRestaurant,
+            imgRestaurant = null,
+        )
+        onUploadComplete()
+        mainNavControllerM.navigate("main")
     }
 }

@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
+import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
@@ -97,7 +98,7 @@ fun ViewRestaurantScreen(
         ) {
             if (imgRestaurant.value != "") {
                 Image(
-                    painter = rememberImagePainter(imgRestaurant),
+                    painter = rememberImagePainter(imgRestaurant.value),
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
@@ -199,8 +200,11 @@ private fun CenterScreen(
             modifier = Modifier.fillMaxWidth(),
         ) {
             CenterItem("Tên Quán", nameRestaurant)
+            Divider(startIndent = 135.dp)
             CenterItem("Địa chỉ", addressRestaurant)
+            Divider(startIndent = 135.dp)
             CenterItem("Số điện thoại", sdtRestaurant)
+            Divider(startIndent = 135.dp)
         }
     }
 }

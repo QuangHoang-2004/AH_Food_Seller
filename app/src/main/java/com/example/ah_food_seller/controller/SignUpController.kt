@@ -1,12 +1,17 @@
 package com.example.ah_food_seller.controller
 
+import com.example.ah_food_seller.model.Product
 import com.example.ah_food_seller.model.Restaurant
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.tasks.await
+
+private val auth = FirebaseAuth.getInstance()
+private val currentUser = auth.currentUser
 
 fun signUp(
     auth: FirebaseAuth,
@@ -90,4 +95,49 @@ fun updateRestaurantStatus(restaurantId: String, newStatus: Boolean) {
         firestore.collection("restaurants")
             .document(restaurantId)
             .update(updates)
+}
+
+fun updateRestaurant(
+    nameRestaurant: String,
+    addressRestaurant: String,
+    sdtRestaurant: String,
+    imgRestaurant: String?,
+) {
+    if (currentUser != null) {
+        val restaurantId = currentUser.uid
+
+        // Truy xuất giá trị của trường imgRestaurant từ Firestore trước khi cập nhật
+        firestore.collection("restaurants").document(restaurantId).get()
+            .addOnSuccessListener { document ->
+                if (document != null) {
+                    // Lấy giá trị imgRestaurant hiện tại từ Firestore
+                    val currentImgRestaurant = document.getString("imageUrl") ?: ""
+
+                    // Sử dụng giá trị imgRestaurant hiện tại nếu imgProduct mới truyền vào là null hoặc rỗng
+                    val finalImgProduct = imgRestaurant ?: currentImgRestaurant
+
+                    // Truy xuất đối tượng sản phẩm cần cập nhật trong Firestore
+                    val productRef = firestore.collection("restaurants").document(restaurantId)
+
+                    val updates = hashMapOf<String, Any>(
+                        "nameRestaurant" to nameRestaurant,
+                        "addressRestaurant" to addressRestaurant,
+                        "sdtRestaurant" to sdtRestaurant,
+                        "imageUrl" to finalImgProduct,
+                    )
+
+                    // Thực hiện cập nhật dữ liệu
+                    productRef.set(updates)
+
+                    if (imgRestaurant != currentImgRestaurant && imgRestaurant != null && currentImgRestaurant != "") {
+                        val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(currentImgRestaurant)
+                        storageRef.delete()
+                    }
+                } else {
+                }
+            }
+            .addOnFailureListener { e ->
+                // Xử lý khi không thể truy xuất dữ liệu từ Firestore
+            }
+    }
 }

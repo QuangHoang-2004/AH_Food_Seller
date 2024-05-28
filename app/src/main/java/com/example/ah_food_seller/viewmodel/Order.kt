@@ -1,4 +1,4 @@
-package com.example.ah_food_seller.model
+package com.example.ah_food_seller.viewmodel
 
 data class OrderItem(
     val productId: String = "",
@@ -7,7 +7,6 @@ data class OrderItem(
 )
 
 data class Order(
-    val orderId: String = "",
     val userId: String = "",
     val items: List<OrderItem> = emptyList(),
     val totalOrderAmount: Double = 0.0,
@@ -18,5 +17,5 @@ data class Order(
     val address: String = "",
     val phone: String = "",
     val paymentMethod: String = "",
-    var totalQuantity: Int = 0
+    val timestamp: com.google.firebase.Timestamp? = null
 )

@@ -85,7 +85,8 @@ fun SettingsScreenMain(
 
         composable("shopsettings"){
             RestaurantScreenMain(
-                mainNavController = mainNavController
+                mainNavController = mainNavController,
+                        resUser = resUser
             )
         }
     }
@@ -209,7 +210,7 @@ fun ProfileCardUI(name : String, address: String, img: MutableState<String>, che
                 ) {
                     if (img.value != "") {
                         Image(
-                            painter = rememberImagePainter(img),
+                            painter = rememberImagePainter(img.value),
                             contentDescription = null,
                             modifier = Modifier
                                 .fillMaxSize()

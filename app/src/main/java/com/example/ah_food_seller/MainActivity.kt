@@ -9,18 +9,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.ah_food_seller.ui.theme.AH_Food_SellerTheme
-import com.example.ah_food_seller.view.AddCategoryScreen
-import com.example.ah_food_seller.view.AddProductScreen
 import com.example.ah_food_seller.view.AuthScreen
-import com.example.ah_food_seller.view.MenuDetailScreen
-import com.example.ah_food_seller.view.MenuScreen
-import com.example.ah_food_seller.viewmodel.HomeScreen
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -29,6 +23,7 @@ import com.google.firebase.ktx.Firebase
 
 class MainActivity : ComponentActivity() {
 //    private val auth: FirebaseAuth by lazy { Firebase.auth }
+    @OptIn(ExperimentalMaterialApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

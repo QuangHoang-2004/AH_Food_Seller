@@ -112,101 +112,102 @@ fun AddProductScreen(
             ) {
                 CircularProgressIndicator()
             }
-        }
+        }else {
 
-        Box(
-            modifier = Modifier
-                .padding(10.dp)
-                .padding(top = 18.dp)
-                .size(200.dp)
-                .background(Color.LightGray, shape = RoundedCornerShape(10.dp))
-                .border(2.dp, Color.Gray, RoundedCornerShape(10.dp))
-                .clip(RoundedCornerShape(10.dp))
-                .clickable { imageLauncher.launch("image/*") },
-            contentAlignment = Alignment.Center
-        ) {
-            if (imageUri != null) {
-                Image(
-                    painter = rememberImagePainter(imageUri),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(10.dp)),  // Ensure image is clipped to rounded corners
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Text("Chọn ảnh", color = Color.Gray)
-            }
-        }
-
-        AddProductItem(
-            mainText = stringResource(id = R.string.contact),
-            nameText = "Tên món",
-            value = nameProduct,
-            onValueChange = { nameProduct = it },
-            lable = "Nhập tên món.",
-            keyboardOptions = keyboardOptions,
-            modifier = Modifier
-                .padding(bottom = 10.dp)
-                .fillMaxWidth()
-        )
-
-        AddProductItem(
-            mainText = stringResource(id = R.string.contact),
-            nameText = "Miêu tả",
-            value = contentProduct,
-            onValueChange = { contentProduct = it },
-            lable = "Nhập miêu tả.",
-            keyboardOptions = keyboardOptions,
-            modifier = Modifier
-                .padding(bottom = 10.dp)
-                .fillMaxWidth()
-        )
-
-        AddProductItem(
-            mainText = stringResource(id = R.string.contact),
-            nameText = "Giá",
-            value = moneyProduct,
-            onValueChange = { moneyProduct = it },
-            lable = "Nhập giá tiền.",
-            keyboardOptions = keyboardOptionsNumber,
-            modifier = Modifier
-                .padding(bottom = 10.dp)
-                .fillMaxWidth()
-        )
-        SelectComponent(
-            modifier = Modifier
-                .padding(10.dp)
-                .fillMaxWidth(),
-            id_Category = id_Category,
-            selectedItem = name_Category,
-            onItemSelected = { newItem -> name_Category.value = newItem }
-        )
-        Button(
-            onClick = {
-                if (nameProduct.isNotEmpty() && contentProduct.isNotEmpty() && moneyProduct.isNotEmpty() && imageUri != null) {
-                    isLoading = true
-                    imageUri?.let { uri ->
-                        uploadImageAndAddProduct(
-                            uri,
-                            nameProduct,
-                            contentProduct,
-                            moneyProduct,
-                            statusProduct,
-                            id_Category.value,
-                            mainNavController,
-                            onUploadComplete = { isLoading = false }
-                        )
-                    }
+            Box(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .padding(top = 18.dp)
+                    .size(200.dp)
+                    .background(Color.LightGray, shape = RoundedCornerShape(10.dp))
+                    .border(2.dp, Color.Gray, RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable { imageLauncher.launch("image/*") },
+                contentAlignment = Alignment.Center
+            ) {
+                if (imageUri != null) {
+                    Image(
+                        painter = rememberImagePainter(imageUri),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(10.dp)),  // Ensure image is clipped to rounded corners
+                        contentScale = ContentScale.Crop
+                    )
                 } else {
-                    // Hiển thị thông báo lỗi khi không nhập đủ dữ liệu
+                    Text("Chọn ảnh", color = Color.Gray)
                 }
-            },
-            modifier = Modifier
-                .padding(top = 20.dp, start = 50.dp, end = 50.dp)
-                .fillMaxWidth()
-        ) {
-            Text(text = "Xác Nhận", color = Color.White)
+            }
+
+            AddProductItem(
+                mainText = stringResource(id = R.string.contact),
+                nameText = "Tên món",
+                value = nameProduct,
+                onValueChange = { nameProduct = it },
+                lable = "Nhập tên món.",
+                keyboardOptions = keyboardOptions,
+                modifier = Modifier
+                    .padding(bottom = 10.dp)
+                    .fillMaxWidth()
+            )
+
+            AddProductItem(
+                mainText = stringResource(id = R.string.contact),
+                nameText = "Miêu tả",
+                value = contentProduct,
+                onValueChange = { contentProduct = it },
+                lable = "Nhập miêu tả.",
+                keyboardOptions = keyboardOptions,
+                modifier = Modifier
+                    .padding(bottom = 10.dp)
+                    .fillMaxWidth()
+            )
+
+            AddProductItem(
+                mainText = stringResource(id = R.string.contact),
+                nameText = "Giá",
+                value = moneyProduct,
+                onValueChange = { moneyProduct = it },
+                lable = "Nhập giá tiền.",
+                keyboardOptions = keyboardOptionsNumber,
+                modifier = Modifier
+                    .padding(bottom = 10.dp)
+                    .fillMaxWidth()
+            )
+            SelectComponent(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxWidth(),
+                id_Category = id_Category,
+                selectedItem = name_Category,
+                onItemSelected = { newItem -> name_Category.value = newItem }
+            )
+            Button(
+                onClick = {
+                    if (nameProduct.isNotEmpty() && contentProduct.isNotEmpty() && moneyProduct.isNotEmpty() && imageUri != null) {
+                        isLoading = true
+                        imageUri?.let { uri ->
+                            uploadImageAndAddProduct(
+                                uri,
+                                nameProduct,
+                                contentProduct,
+                                moneyProduct,
+                                statusProduct,
+                                id_Category.value,
+                                mainNavController,
+                                onUploadComplete = { isLoading = false }
+                            )
+                        }
+                    } else {
+                        // Hiển thị thông báo lỗi khi không nhập đủ dữ liệu
+                    }
+                },
+                modifier = Modifier
+                    .padding(top = 20.dp, start = 50.dp, end = 50.dp)
+                    .fillMaxWidth()
+            ) {
+                Text(text = "Xác Nhận", color = Color.White)
+            }
         }
     }
 }
